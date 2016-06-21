@@ -80,6 +80,11 @@ namespace Dapper.AmbientContext
         /// </returns>
         public IDbContextScope Join()
         {
+            if (DbContextScope.DbContextScopeStack.IsEmpty)
+            {
+                return New();
+            }
+
             return new DbContextScope(option: DbContextScopeOption.Join);
         }
     }
