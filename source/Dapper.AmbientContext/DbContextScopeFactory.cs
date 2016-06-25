@@ -31,7 +31,7 @@ namespace Dapper.AmbientContext
     /// <summary>
     /// Implements the database context scope factory.
     /// </summary>
-    public sealed class DbContextScopeFactory : IDbContextScopeFactory
+    public sealed partial class DbContextScopeFactory : IDbContextScopeFactory
     {
         private readonly IDbConnectionFactory _dbConnectionFactory;
 
@@ -58,7 +58,16 @@ namespace Dapper.AmbientContext
         /// <returns>
         /// The new database context scope.
         /// </returns>
-        public IDbContextScope New(bool suppress = false, IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
+        public IDbContextScope Create(bool suppress = false, IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
+        {
+            var dbContext = CreateInternal(suppress, isolationLevel);
+
+            dbContext.Open();
+
+            return dbContext;
+        }
+
+        private DbContextScope CreateInternal(bool suppress = false, IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
         {
             var connection = _dbConnectionFactory.Create();
 
@@ -78,11 +87,11 @@ namespace Dapper.AmbientContext
         /// <returns>
         /// The database context scope.
         /// </returns>
-        public IDbContextScope Join()
+        public IDbContextScope CreateOrJoin()
         {
             if (DbContextScope.DbContextScopeStack.IsEmpty)
             {
-                return New();
+                return Create();
             }
 
             return new DbContextScope(option: DbContextScopeOption.Join);

@@ -65,10 +65,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DbContextScopeTests.cs" />
+    <Compile Include="DbContextScopeTests.Rollback.cs" />
+    <Compile Include="DbContextScopeTests.Create.cs" />
+    <Compile Include="DbContextScopeTests.Commit.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DbContextScopeTests.Dispose.cs" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

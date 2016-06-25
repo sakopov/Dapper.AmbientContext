@@ -1,5 +1,5 @@
 ﻿//
-// IDbContextScopeFactory.cs
+// DbContextScopeFactory.cs
 // 
 // Author:
 //       Sergey Akopov <info@sergeyakopov.com>
@@ -30,9 +30,9 @@ using System.Threading.Tasks;
 namespace Dapper.AmbientContext
 {
     /// <summary>
-    /// The factory interface to create new database context scope or join to an existing one.
+    /// Implements the database context scope factory.
     /// </summary>
-    public interface IDbContextScopeFactory
+    public sealed partial class DbContextScopeFactory
     {
         /// <summary>
         /// Creates a new database context scope.
@@ -46,21 +46,14 @@ namespace Dapper.AmbientContext
         /// <returns>
         /// The new database context scope.
         /// </returns>
-        IDbContextScope Create(bool suppress = false, IsolationLevel isolationLevel = IsolationLevel.ReadCommitted);
+        public async Task<IDbContextScope> CreateAsync(bool suppress = false, IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
+        {
+            var dbContext = CreateInternal(suppress, isolationLevel);
 
-        /// <summary>
-        /// Creates a new database context scope asynchronously.
-        /// </summary>
-        /// <param name="suppress">
-        /// Indicates whether a database transaction should be suppressed. The default value is <c>false</c>.
-        /// </param>
-        /// <param name="isolationLevel">
-        /// The database transaction isolation level. The default value is <c>IsolationLevel.ReadCommitted</c>.
-        /// </param>
-        /// <returns>
-        /// The new database context scope.
-        /// </returns>
-        Task<IDbContextScope> CreateAsync(bool suppress = false, IsolationLevel isolationLevel = IsolationLevel.ReadCommitted);
+            await dbContext.OpenAsync();
+
+            return dbContext;
+        }
 
         /// <summary>
         /// Joins an existing database context scope or creates a new one if one doesn't exist.
@@ -68,14 +61,14 @@ namespace Dapper.AmbientContext
         /// <returns>
         /// The database context scope.
         /// </returns>
-        IDbContextScope CreateOrJoin();
+        public async Task<IDbContextScope> CreateOrJoinAsync()
+        {
+            if (DbContextScope.DbContextScopeStack.IsEmpty)
+            {
+                return await CreateAsync();
+            }
 
-        /// <summary>
-        /// Joins an existing database context scope or creates a new one if one doesn't exist asynchronously.
-        /// </summary>
-        /// <returns>
-        /// The database context scope.
-        /// </returns>
-        Task<IDbContextScope> CreateOrJoinAsync();
+            return new DbContextScope(option: DbContextScopeOption.Join);
+        }
     }
 }

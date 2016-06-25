@@ -1,5 +1,5 @@
 ﻿//
-// DbContext.cs
+// DbContextScope.cs
 // 
 // Author:
 //       Sergey Akopov <info@sergeyakopov.com>
@@ -26,36 +26,47 @@
 
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Threading.Tasks;
 
 namespace Dapper.AmbientContext
 {
     /// <summary>
-    /// Implements the database context which is consumed by any class that needs to make database calls. 
-    /// This class acts as the proxy for <see cref="T:Dapper.AmbientContext.IDbContextScope"/> which contains 
-    /// the actual data access logic. The reason for the separation is so to prevent the consuming class from having
-    /// direct access to transaction and connection objects available at the database context scope level.
+    /// Implements database context scope.
     /// </summary>
-    public sealed partial class DbContext : IDbContext
+    public sealed partial class DbContextScope
     {
-        private readonly IDbContextScope _dbContextScope;
-
         /// <summary>
-        /// Creates a new instance of the <see cref="T:Dapper.AmbientContext.DbContext"/> class.
+        /// Opens database connection and begins transaction, if not suppressed.
         /// </summary>
-        /// <remarks>
-        /// This constructor is internal because it can only be called by <see cref="T:Dapper.AmbientContext.IAmbientDbContextLocator"/>.
-        /// </remarks>
-        /// <param name="dbContextScope">
-        /// The active database context scope.
-        /// </param>
-        internal DbContext(IDbContextScope dbContextScope)
+        internal async Task OpenAsync()
         {
-            _dbContextScope = dbContextScope;
+            await PrepareAsyncConnection();
         }
 
         /// <summary>
-        /// Executes a query, returning the data typed as per <typeparam name="T"></typeparam>.
+        /// Opens a database connection asynchronously and starts a new transaction.
+        /// </summary>
+        private async Task PrepareAsyncConnection()
+        {
+            if (Connection.State == ConnectionState.Closed)
+            {
+                await ((DbConnection)Connection).OpenAsync();
+            }
+
+            if (Transaction == null)
+            {
+                if (!Option.HasFlag(DbContextScopeOption.Suppress))
+                {
+                    Transaction = Connection.BeginTransaction(IsolationLevel);
+                }
+            }
+        }
+
+        #region IDbContextScope Members
+
+        /// <summary>
+        /// Executes an asynchronous query, returning the data typed as per <typeparam name="T"></typeparam>
         /// </summary>
         /// <typeparam name="T">
         /// The data type of the returned object.
@@ -72,13 +83,15 @@ namespace Dapper.AmbientContext
         /// <returns>
         /// A sequence of data of the supplied type <typeparam name="T"></typeparam>.
         /// </returns>
-        public IEnumerable<T> Query<T>(string query, object param = null, CommandType? commandType = null)
+        async Task<IEnumerable<T>> IDbContext.QueryAsync<T>(string query, object param, CommandType? commandType)
         {
-            return _dbContextScope.Query<T>(query, param, commandType);
+            await PrepareAsyncConnection();
+
+            return await Connection.QueryAsync<T>(query, param, Transaction, commandType: commandType);
         }
 
         /// <summary>
-        /// Executes a query, returning a list of dynamic objects.
+        /// Executes an asynchronous query, returning a list of dynamic objects.
         /// </summary>
         /// <param name="query">
         /// The query to execute.
@@ -92,13 +105,15 @@ namespace Dapper.AmbientContext
         /// <returns>
         /// A sequence of dynamic objects.
         /// </returns>
-        public IEnumerable<dynamic> Query(string query, object param = null, CommandType? commandType = null)
+        async Task<IEnumerable<dynamic>> IDbContext.QueryAsync(string query, object param, CommandType? commandType)
         {
-            return _dbContextScope.Query(query, param, commandType);
+            await PrepareAsyncConnection();
+
+            return await Connection.QueryAsync(query, param, Transaction, commandType: commandType);
         }
 
         /// <summary>
-        /// Executes parameterized command.
+        /// Executes asynchronous parameterized command.
         /// </summary>
         /// <param name="sql">
         /// The query to execute.
@@ -112,14 +127,16 @@ namespace Dapper.AmbientContext
         /// <returns>
         /// The number of rows affected.
         /// </returns>
-        public int Execute(string sql, object param = null, CommandType? commandType = null)
+        async Task<int> IDbContext.ExecuteAsync(string sql, object param, CommandType? commandType)
         {
-            return _dbContextScope.Execute(sql, param, commandType);
+            await PrepareAsyncConnection();
+
+            return await Connection.ExecuteAsync(sql, param, Transaction, commandType: commandType);
         }
 
         /// <summary>
-        /// Executes parameterized command that selects a single value and returns it typed as per 
-        /// <typeparam name="T"></typeparam>.
+        /// Executes asynchronous parameterized command that selects a single value and returns it typed as 
+        /// per <typeparam name="T"></typeparam>.
         /// </summary>
         /// <param name="sql">
         /// The query to execute.
@@ -133,9 +150,13 @@ namespace Dapper.AmbientContext
         /// <returns>
         /// The first cell selected.
         /// </returns>
-        public T ExecuteScalar<T>(string sql, object param = null, CommandType? commandType = null)
+        async Task<T> IDbContext.ExecuteScalarAsync<T>(string sql, object param, CommandType? commandType)
         {
-            return _dbContextScope.ExecuteScalar<T>(sql, param, commandType);
+            await PrepareAsyncConnection();
+
+            return await Connection.ExecuteScalarAsync<T>(sql, param, Transaction, commandType: commandType);
         }
+
+        #endregion
     }
 }

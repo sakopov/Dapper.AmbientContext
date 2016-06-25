@@ -46,8 +46,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AmbientDbContextLocator.cs" />
+    <Compile Include="DbContext.Async.cs" />
     <Compile Include="DbContext.cs" />
+    <Compile Include="DbContextScope.Async.cs" />
     <Compile Include="DbContextScope.cs" />
+    <Compile Include="DbContextScopeFactory.Async.cs" />
     <Compile Include="DbContextScopeFactory.cs" />
     <Compile Include="DbContextScopeOption.cs" />
     <Compile Include="IAmbientDbContextLocator.cs" />
