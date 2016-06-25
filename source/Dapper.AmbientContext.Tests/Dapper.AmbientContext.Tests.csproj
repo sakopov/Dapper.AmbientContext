@@ -65,6 +65,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DbContextScopeFactoryTests.cs" />
     <Compile Include="DbContextScopeTests.Rollback.cs" />
     <Compile Include="DbContextScopeTests.Create.cs" />
     <Compile Include="DbContextScopeTests.Commit.cs" />

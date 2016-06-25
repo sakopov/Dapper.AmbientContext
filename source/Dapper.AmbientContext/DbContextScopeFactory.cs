@@ -67,20 +67,6 @@ namespace Dapper.AmbientContext
             return dbContext;
         }
 
-        private DbContextScope CreateInternal(bool suppress = false, IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
-        {
-            var connection = _dbConnectionFactory.Create();
-
-            var option = DbContextScopeOption.New;
-
-            if (suppress)
-            {
-                option &= DbContextScopeOption.Suppress;
-            }
-
-            return new DbContextScope(connection, option, isolationLevel);
-        }
-
         /// <summary>
         /// Joins an existing database context scope or creates a new one if one doesn't exist.
         /// </summary>
@@ -95,6 +81,32 @@ namespace Dapper.AmbientContext
             }
 
             return new DbContextScope(option: DbContextScopeOption.Join);
+        }
+
+        /// <summary>
+        /// Creates new database context scope.
+        /// </summary>
+        /// <param name="suppress">
+        /// Indicates whether a database transaction should be suppressed. The default value is <c>false</c>.
+        /// </param>
+        /// <param name="isolationLevel">
+        /// The database transaction isolation level. The default value is <c>IsolationLevel.ReadCommitted</c>.
+        /// </param>
+        /// <returns>
+        /// The new database context scope.
+        /// </returns>
+        private DbContextScope CreateInternal(bool suppress = false, IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
+        {
+            var connection = _dbConnectionFactory.Create();
+
+            var option = DbContextScopeOption.New;
+
+            if (suppress)
+            {
+                option |= DbContextScopeOption.Suppress;
+            }
+
+            return new DbContextScope(connection, option, isolationLevel);
         }
     }
 }
