@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="IAmbientDbContextLocator.cs">
+// <copyright file="IAmbientDbContext.cs">
 //   Copyright (c) 2016 Sergey Akopov
 //   
 //   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,17 +27,44 @@
 
 namespace Dapper.AmbientContext
 {
+    using System;
+    using System.Data;
+
     /// <summary>
-    /// Defines an interface that is implemented by types capable of retrieving ambient database context from the storage.
+    /// Defines an interface that is implemented by the ambient database context.
     /// </summary>
-    public interface IAmbientDbContextLocator
+    public interface IAmbientDbContext : IDisposable
     {
         /// <summary>
-        /// Retrieves active ambient database context from the storage.
+        /// Gets the ambient database context connection. If inheriting from a parent
+        /// ambient database context, this property will be assigned to parent's connection.
         /// </summary>
-        /// <returns>
-        /// The active <see cref="IAmbientDbContextQueryProxy"/> instance.
-        /// </returns>
-        IAmbientDbContextQueryProxy Get();
+        IDbConnection Connection { get; }
+
+        /// <summary>
+        /// Gets or sets the ambient database context transaction. If inheriting from a parent
+        /// ambient database context, this property will be assigned to parent's transaction.
+        /// </summary>
+        IDbTransaction Transaction { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating whether to suppress the database transaction.
+        /// </summary>
+        bool Suppress { get; }
+
+        /// <summary>
+        /// Gets the transaction isolation level.
+        /// </summary>
+        IsolationLevel IsolationLevel { get; }
+
+        /// <summary>
+        /// Commits ambient database context.
+        /// </summary>
+        void Commit();
+
+        /// <summary>
+        /// Rolls back ambient database context transaction from a pending state.
+        /// </summary>
+        void Rollback();
     }
 }

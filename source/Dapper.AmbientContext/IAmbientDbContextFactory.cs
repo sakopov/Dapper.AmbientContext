@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="IAmbientDbContextLocator.cs">
+// <copyright file="IAmbientDbContextFactory.cs">
 //   Copyright (c) 2016 Sergey Akopov
 //   
 //   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,23 +21,39 @@
 //   THE SOFTWARE.
 // </copyright>
 // <summary>
-//   Defines an interface that is implemented by types capable of retrieving ambient database context from the storage.
+//   Defines an interface that is implemented by types capable of building ambient database context.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace Dapper.AmbientContext
 {
+    using System.Data;
+
     /// <summary>
-    /// Defines an interface that is implemented by types capable of retrieving ambient database context from the storage.
+    /// Defines an interface that is implemented by types capable of building ambient database context.
     /// </summary>
-    public interface IAmbientDbContextLocator
+    public interface IAmbientDbContextFactory
     {
         /// <summary>
-        /// Retrieves active ambient database context from the storage.
+        /// Creates an ambient database context with the specified options or joins an existing one.
         /// </summary>
+        /// <param name="join">
+        /// Determines whether to join and inherit an existing ambient database context. If one isn't found, a
+        /// new ambient database context will be created based on the specified configurations provides via 
+        /// <see cref="AmbientDbContextFactory.Create"/> method. The default is <c>true</c>.
+        /// </param>
+        /// <param name="suppress">
+        /// Determines whether the transaction support should be disabled. The default is <c>false</c>.
+        /// </param>
+        /// <param name="isolationLevel">
+        /// Sets the transaction isolation level. The default is <see cref="IsolationLevel.ReadCommitted"/>.
+        /// </param>
         /// <returns>
-        /// The active <see cref="IAmbientDbContextQueryProxy"/> instance.
+        /// The <see cref="IAmbientDbContext"/> instance.
         /// </returns>
-        IAmbientDbContextQueryProxy Get();
+        /// <exception cref="AmbientDbContextException">
+        /// when the database connection factory returns a connection in a non-closed state.
+        /// </exception>
+        IAmbientDbContext Create(bool join = true, bool suppress = false, IsolationLevel isolationLevel = IsolationLevel.ReadCommitted);
     }
 }

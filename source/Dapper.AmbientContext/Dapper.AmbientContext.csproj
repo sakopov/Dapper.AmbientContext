@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Dapper.AmbientContext</RootNamespace>
     <AssemblyName>Dapper.AmbientContext</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -31,34 +31,39 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Dapper, Version=1.40.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Dapper.1.42\lib\net45\Dapper.dll</HintPath>
+    <Reference Include="Dapper, Version=1.50.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Dapper.1.50.2\lib\net451\Dapper.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Collections.Immutable.1.1.37\lib\dotnet\System.Collections.Immutable.dll</HintPath>
+    <Reference Include="System.Collections.Immutable, Version=1.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Collections.Immutable.1.2.0\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AmbientDbContext.cs" />
+    <Compile Include="AmbientDbContext.Proxy.cs" />
+    <Compile Include="AmbientDbContext.ProxyAsync.cs" />
+    <Compile Include="AmbientDbContextException.cs" />
+    <Compile Include="AmbientDbContextFactory.cs" />
     <Compile Include="AmbientDbContextLocator.cs" />
-    <Compile Include="DbContext.Async.cs" />
-    <Compile Include="DbContext.cs" />
-    <Compile Include="DbContextScope.Async.cs" />
-    <Compile Include="DbContextScope.cs" />
-    <Compile Include="DbContextScopeFactory.Async.cs" />
-    <Compile Include="DbContextScopeFactory.cs" />
-    <Compile Include="DbContextScopeOption.cs" />
+    <Compile Include="AmbientDbContextStorageKey.cs" />
+    <Compile Include="AmbientDbContextStorageProvider.cs" />
+    <Compile Include="IAmbientDbContext.cs" />
+    <Compile Include="IAmbientDbContextFactory.cs" />
     <Compile Include="IAmbientDbContextLocator.cs" />
+    <Compile Include="IAmbientDbContextQueryProxy.cs" />
     <Compile Include="IDbConnectionFactory.cs" />
-    <Compile Include="IDbContext.cs" />
-    <Compile Include="IDbContextScope.cs" />
-    <Compile Include="IDbContextScopeFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Storage\ContextualStorageHelper.cs" />
+    <Compile Include="Storage\IContextualStorage.cs" />
+    <Compile Include="Storage\LogicalCallContextStorage.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

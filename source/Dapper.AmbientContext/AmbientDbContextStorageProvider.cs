@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="AmbientDbContextLocator.cs">
+// <copyright file="AmbientDbContextStorageProvider.cs">
 //   Copyright (c) 2016 Sergey Akopov
 //   
 //   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,7 +21,7 @@
 //   THE SOFTWARE.
 // </copyright>
 // <summary>
-//   Represents the type which retrieves active database context from the storage.
+//   Represents the type which provides contextual storage strategy.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -31,42 +31,46 @@ namespace Dapper.AmbientContext
     using Storage;
 
     /// <summary>
-    /// Represents the type which retrieves active database context from the storage.
+    /// Represents the type which provides contextual storage strategy.
     /// </summary>
-    public sealed class AmbientDbContextLocator : IAmbientDbContextLocator
+    public static class AmbientDbContextStorageProvider
     {
         /// <summary>
-        /// The contextual storage helper.
+        /// The storage instance.
         /// </summary>
-        private readonly ContextualStorageHelper _storageHelper;
+        private static IContextualStorage _storage;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AmbientDbContextLocator"/> class.
+        /// Gets current contextual storage.
         /// </summary>
-        public AmbientDbContextLocator()
+        /// <exception cref="InvalidOperationException">
+        /// when attempting to get current contextual storage before setting it via <see cref="SetStorage"/>.
+        /// </exception>
+        internal static IContextualStorage Storage
         {
-            _storageHelper = new ContextualStorageHelper(AmbientDbContextStorageProvider.Storage);
+            get
+            {
+                if (_storage == null)
+                {
+                    throw new InvalidOperationException("Ambient database context storage hasn't been configured. Use AmbientDbContextStorageProvider.SetStorage(IContextualStorage) to configure ambient database context storage.");
+                }
+
+                return _storage;
+            }
         }
 
         /// <summary>
-        /// Retrieves active ambient database context from the storage.
+        /// Sets contextual storage strategy for ambient database context.
         /// </summary>
-        /// <returns>
-        /// The active <see cref="IAmbientDbContextQueryProxy"/> instance.
-        /// </returns>
-        /// <exception cref="AmbientDbContextException">
-        /// when the contextual storage does not contain an active ambient database context.
+        /// <param name="storage">
+        /// The storage to use.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// when <paramref name="storage"/> is <c>null</c>.
         /// </exception>
-        public IAmbientDbContextQueryProxy Get()
+        public static void SetStorage(IContextualStorage storage)
         {
-            var immutableStack = _storageHelper.GetStack();
-
-            if (immutableStack.IsEmpty)
-            {
-                throw new InvalidOperationException("Could not find active ambient database context instance. Use AmbientDbContextFactory to create ambient database context before attempting to execute queries.");
-            }
-
-            return (IAmbientDbContextQueryProxy)immutableStack.Peek();
+            _storage = storage;
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="IAmbientDbContextLocator.cs">
+// <copyright file="AmbientDbContextException.cs">
 //   Copyright (c) 2016 Sergey Akopov
 //   
 //   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,23 +21,42 @@
 //   THE SOFTWARE.
 // </copyright>
 // <summary>
-//   Defines an interface that is implemented by types capable of retrieving ambient database context from the storage.
+//   Represents the type that is responsible for creating ambient database context.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace Dapper.AmbientContext
 {
+    using System;
+
     /// <summary>
-    /// Defines an interface that is implemented by types capable of retrieving ambient database context from the storage.
+    /// Represents exceptions thrown during the initialization or lifetime of the ambient database context.
     /// </summary>
-    public interface IAmbientDbContextLocator
+    public sealed class AmbientDbContextException : Exception
     {
         /// <summary>
-        /// Retrieves active ambient database context from the storage.
+        /// Initializes a new instance of the <see cref="AmbientDbContextException"/> class with 
+        /// the specified message.
         /// </summary>
-        /// <returns>
-        /// The active <see cref="IAmbientDbContextQueryProxy"/> instance.
-        /// </returns>
-        IAmbientDbContextQueryProxy Get();
+        /// <param name="message">
+        /// A helpful message describing the exception.
+        /// </param>
+        public AmbientDbContextException(string message) : base(message)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AmbientDbContextException"/> class with 
+        /// the specified message and exception.
+        /// </summary>
+        /// <param name="message">
+        /// A helpful message describing the exception.
+        /// </param>
+        /// <param name="innerException">
+        /// The underlying exception.
+        /// </param>
+        public AmbientDbContextException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
     }
 }

@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="IAmbientDbContextLocator.cs">
+// <copyright file="AmbientDbContextStorageKey.cs">
 //   Copyright (c) 2016 Sergey Akopov
 //   
 //   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,23 +21,20 @@
 //   THE SOFTWARE.
 // </copyright>
 // <summary>
-//   Defines an interface that is implemented by types capable of retrieving ambient database context from the storage.
+//   Represents static accessor type for the ambient database context storage key.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace Dapper.AmbientContext
 {
     /// <summary>
-    /// Defines an interface that is implemented by types capable of retrieving ambient database context from the storage.
+    /// Represents static accessor type for the ambient database context storage key.
     /// </summary>
-    public interface IAmbientDbContextLocator
+    internal class AmbientDbContextStorageKey
     {
         /// <summary>
-        /// Retrieves active ambient database context from the storage.
+        /// The key to use when store or retrieving ambient database context from storage.
         /// </summary>
-        /// <returns>
-        /// The active <see cref="IAmbientDbContextQueryProxy"/> instance.
-        /// </returns>
-        IAmbientDbContextQueryProxy Get();
+        public const string Key = "ambient_db_context";
     }
 }

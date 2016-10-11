@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using Dapper.AmbientContext.Storage;
 using Machine.Specifications;
 using Moq;
 using It = Machine.Specifications.It;
@@ -9,64 +10,110 @@ namespace Dapper.AmbientContext.Tests
     internal class AmbientDbContextLocatorTests
     {
         [Subject("Ambient DB Context Locator")]
-        public class When_database_context_scope_stack_has_one_database_context_scope
+        class When_ambient_database_context_stack_is_empty
         {
             Establish context = () =>
             {
-                var dbConnectionState = ConnectionState.Closed;
+                AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
 
-                var dbConnectionMock = new Mock<IDbConnection>();
-                dbConnectionMock.Setup(mock => mock.State).Returns(() => dbConnectionState);
-                dbConnectionMock.Setup(mock => mock.Open()).Callback(() => dbConnectionState = ConnectionState.Open);
-                dbConnectionMock.Setup(mock => mock.BeginTransaction(Moq.It.IsAny<IsolationLevel>())).Returns(() => new Mock<IDbTransaction>().Object);
-
-                ExpectedDbContextScope = new DbContextScope(dbConnectionMock.Object, DbContextScopeOption.New);
-                ExpectedDbContextScope.Open();
-
-                DbContextLocator = new AmbientDbContextLocator();
+                _ambientDbContextLocator = new AmbientDbContextLocator();
             };
 
             Because of = () =>
             {
-                DbContext = (DbContext)DbContextLocator.Get();
+                _exception = Catch.Exception(() => _ambientDbContextLocator.Get());
             };
 
-            It should_return_the_database_context = () =>
+            It should_throw_ambient_database_context_exception = () =>
             {
-                DbContext.ShouldNotBeNull();
+                _exception.ShouldBeOfExactType<InvalidOperationException>();
+                _exception.Message.ShouldEqual("Could not find active ambient database context instance. Use AmbientDbContextFactory to create ambient database context before attempting to execute queries.");
             };
 
-            Cleanup scopes = () =>
+            Cleanup test = () =>
             {
-                ExpectedDbContextScope.Dispose();
+                AmbientDbContextStorageProvider.SetStorage(null);
             };
 
-            private static DbContextScope ExpectedDbContextScope;
-            private static DbContext DbContext;
-            private static AmbientDbContextLocator DbContextLocator;
+            private static Exception _exception;
+            private static IAmbientDbContextLocator _ambientDbContextLocator;
         }
 
         [Subject("Ambient DB Context Locator")]
-        public class When_database_context_scope_stack_does_not_have_database_context_scopes
+        class When_ambient_database_context_stack_has_one_ambient_database_context
         {
             Establish context = () =>
             {
-                DbContextLocator = new AmbientDbContextLocator();
+                AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
+
+                var dbConnectionMock = new Mock<IDbConnection>();
+
+                _expectedAmbientDbContext = new AmbientDbContext(dbConnectionMock.Object, true, true, IsolationLevel.ReadCommitted);
+
+                _ambientDbContextLocator = new AmbientDbContextLocator();
             };
 
             Because of = () =>
             {
-                Exception = Catch.Exception(() => DbContextLocator.Get());
+                _ambientDbContext = (AmbientDbContext)_ambientDbContextLocator.Get();
             };
 
-            It should_throw_the_expected_exception = () =>
+            It should_return_the_expected_ambient_database_context = () =>
             {
-                Exception.ShouldBeOfExactType<InvalidOperationException>();
-                Exception.Message.ShouldEqual("Cannot find active database context scope. Make sure a context scope is created before attempting to run a query.");
+                _ambientDbContext.ShouldNotBeNull();
+                _ambientDbContext.ShouldEqual(_expectedAmbientDbContext);
             };
 
-            private static Exception Exception;
-            private static AmbientDbContextLocator DbContextLocator;
+            Cleanup test = () =>
+            {
+                _expectedAmbientDbContext.Dispose();
+
+                AmbientDbContextStorageProvider.SetStorage(null);
+            };
+
+            private static IAmbientDbContext _expectedAmbientDbContext;
+            private static IAmbientDbContext _ambientDbContext;
+            private static IAmbientDbContextLocator _ambientDbContextLocator;
+        }
+
+        [Subject("Ambient DB Context Locator")]
+        class When_ambient_database_context_stack_has_more_than_one_ambient_database_context
+        {
+            Establish context = () =>
+            {
+                AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
+
+                var dbConnectionMock = new Mock<IDbConnection>();
+
+                _expectedAmbientDbContext1 = new AmbientDbContext(dbConnectionMock.Object, true, true, IsolationLevel.ReadCommitted);
+                _expectedAmbientDbContext2 = new AmbientDbContext(dbConnectionMock.Object, true, true, IsolationLevel.ReadCommitted);
+
+                _ambientDbContextLocator = new AmbientDbContextLocator();
+            };
+
+            Because of = () =>
+            {
+                _ambientDbContext = (AmbientDbContext)_ambientDbContextLocator.Get();
+            };
+
+            It should_return_the_top_ambient_database_context_in_the_stack = () =>
+            {
+                _ambientDbContext.ShouldNotBeNull();
+                _ambientDbContext.ShouldEqual(_expectedAmbientDbContext2);
+            };
+
+            Cleanup test = () =>
+            {
+                _expectedAmbientDbContext2.Dispose();
+                _expectedAmbientDbContext1.Dispose();
+
+                AmbientDbContextStorageProvider.SetStorage(null);
+            };
+
+            private static IAmbientDbContext _expectedAmbientDbContext1;
+            private static IAmbientDbContext _expectedAmbientDbContext2;
+            private static IAmbientDbContext _ambientDbContext;
+            private static IAmbientDbContextLocator _ambientDbContextLocator;
         }
     }
 }
