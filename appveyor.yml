@@ -29,7 +29,8 @@ nuget:
   project_feed: true
   disable_publish_on_pr: true
 
-cache: packages
+cache:
+  - packages -> **\packages.config
 
 #---------------------------------#
 #       build configuration       #
@@ -56,3 +57,16 @@ before_build:
 
 artifacts:
   - path: '*.nupkg'
+  
+#---------------------------------#
+#     deployment configuration    #
+#---------------------------------#
+
+deploy:
+  - provider: NuGet
+    api_key:
+      secure: ZyNMTHl83Q+jbtyCaweu6ULT7jo2dGq+lF7TibDcVyE1aH9KKvdmf9FEHkRQHVCL
+    artifact: /.*\.nupkg/
+    on:
+      branch: master
+      appveyor_repo_tag: true  
