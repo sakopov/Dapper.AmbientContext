@@ -19,6 +19,8 @@ Install Dapper.AmbientContext with NuGet
 Install-Package Dapper.AmbientContext
 ```
 
+This project is still a work in progress and i'm working hard on making the first release :)
+
 ##Configuration
 
 Create a database connection factory for your particular database engine. Below is an example for SQL Server.
@@ -86,7 +88,7 @@ Create a service class and execute your repository. Note, you could easily use y
 ```
 public class MyService 
 {
-  public DoSomeWork()
+  public void DoSomeWork()
   {
     var connectionFactory = new SqlConnectionFactory("connection-string");
     
@@ -105,7 +107,7 @@ If you're nesting ambient database context within another, you will join the par
 ```
 public class MyService 
 {
-  public DoSomeWork()
+  public void DoSomeWork()
   {
     var connectionFactory = new SqlConnectionFactory("connection-string");
     
@@ -130,7 +132,7 @@ Note, while this isn't recommended you could nest an ambient database context wi
 ```
 public class MyService 
 {
-  public DoSomeWork()
+  public void DoSomeWork()
   {
     var connectionFactory = new SqlConnectionFactory("connection-string");
     
@@ -151,6 +153,3 @@ public class MyService
 ```
 
 You can also specify whether you want transactional support via the `suppress` parameter and the transaction isolation level via `isolationLevel`. The defaults are `false` and `IsolationLevel.ReadCommitted` respectively.
-
-
-This project is still a work in progress and i'm working hard on making the first release :)
