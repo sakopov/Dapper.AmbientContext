@@ -15,10 +15,8 @@ More information in the [wiki](https://github.com/sakopov/Dapper.AmbientContext/
 
 ##Installation
 
-Install Dapper.AmbientContext with NuGet
+Install [Dapper.AmbientContext with NuGet](https://www.nuget.org/packages/Dapper.AmbientContext)
 
 ```
 Install-Package Dapper.AmbientContext
 ```
-
-This project is still a work in progress and i'm working hard on making the first release :)
