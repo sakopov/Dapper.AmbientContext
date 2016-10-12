@@ -9,7 +9,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Ambient context implementation for Dapper.</description>
     <copyright>Copyright 2016 Sergey Akopov</copyright>
-    <tags>dapper ambient contenxt</tags>
+    <tags>dapper ambient context</tags>
     <dependencies>
       <dependency id="Dapper" version="1.50.2" />
       <dependency id="System.Collections.Immutable" version="1.2.0" />
