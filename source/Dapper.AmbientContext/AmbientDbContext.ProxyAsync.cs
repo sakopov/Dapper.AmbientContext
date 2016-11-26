@@ -44,6 +44,106 @@ namespace Dapper.AmbientContext
         #region Dapper Proxy Members
 
         /// <summary>
+        /// Execute parameterized SQL that selects a single value asynchronously using 
+        /// .NET 4.5 <see cref="System.Threading.Tasks.Task"/>.
+        /// </summary>
+        /// <param name="sql">
+        /// The SQL statement to execute.
+        /// </param>
+        /// <param name="param">
+        /// The SQL query parameters.
+        /// </param>
+        /// <param name="commandTimeout">
+        /// The number of seconds before command execution timeout.
+        /// </param>
+        /// <param name="commandType">
+        /// Determines whether the command is a stored procedure or a batch.
+        /// </param>
+        /// <returns>
+        /// The first cell selected.
+        /// </returns>
+        public async Task<object> ExecuteScalarAsync(
+            string sql, 
+            object param = null, 
+            int? commandTimeout = null, 
+            CommandType? commandType = null)
+        {
+            await PrepareConnectionAndTransactionAsync(default(CancellationToken)).ConfigureAwait(false);
+
+            return await Connection.ExecuteScalarAsync(sql, param, Transaction, commandTimeout, commandType).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Execute parameterized SQL that selects a single value asynchronously using 
+        /// .NET 4.5 <see cref="System.Threading.Tasks.Task"/>.
+        /// </summary>
+        /// <typeparam name="T">
+        /// The return type.
+        /// </typeparam>
+        /// <param name="sql">
+        /// The SQL statement to execute.
+        /// </param>
+        /// <param name="param">
+        /// The SQL query parameters.
+        /// </param>
+        /// <param name="commandTimeout">
+        /// The number of seconds before command execution timeout.
+        /// </param>
+        /// <param name="commandType">
+        /// Determines whether the command is a stored procedure or a batch.
+        /// </param>
+        /// <returns>
+        /// The first cell selected.
+        /// </returns>
+        public async Task<T> ExecuteScalarAsync<T>(
+            string sql, 
+            object param = null, 
+            int? commandTimeout = null, 
+            CommandType? commandType = null)
+        {
+            await PrepareConnectionAndTransactionAsync(default(CancellationToken)).ConfigureAwait(false);
+
+            return await Connection.ExecuteScalarAsync<T>(sql, param, Transaction, commandTimeout, commandType).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Execute parameterized SQL that selects a single value asynchronously using 
+        /// .NET 4.5 <see cref="System.Threading.Tasks.Task"/>.
+        /// </summary>
+        /// <param name="command">
+        /// The SQL command definition.
+        /// </param>
+        /// <returns>
+        /// The first cell selected.
+        /// </returns>
+        public async Task<object> ExecuteScalarAsync(CommandDefinition command)
+        {
+            await PrepareConnectionAndTransactionAsync(command.CancellationToken).ConfigureAwait(false);
+
+            return await Connection.ExecuteScalarAsync(InjectTransaction(command)).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Execute parameterized SQL that selects a single value asynchronously using 
+        /// .NET 4.5 <see cref="System.Threading.Tasks.Task"/>.
+        /// </summary>
+        /// <typeparam name="T">
+        /// The return type.
+        /// </typeparam>
+        /// <param name="command">
+        /// The SQL command definition.
+        /// </param>
+        /// <returns>
+        /// The first cell selected.
+        /// </returns>
+        public async Task<T> ExecuteScalarAsync<T>(CommandDefinition command)
+        {
+            await PrepareConnectionAndTransactionAsync(command.CancellationToken).ConfigureAwait(false);
+
+            return await Connection.ExecuteScalarAsync<T>(InjectTransaction(command)).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Execute a query asynchronously using .NET 4.5 <see cref="System.Threading.Tasks.Task"/>.
         /// </summary>
         /// <remarks>
