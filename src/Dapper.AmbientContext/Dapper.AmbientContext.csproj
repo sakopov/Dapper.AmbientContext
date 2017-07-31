@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Ambient context implementation for Dapper.NET</Description>
     <Copyright>Copyright Sergey Akopov</Copyright>
-    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionPrefix>1.3.0</VersionPrefix>
     <Authors>Sergey Akopov</Authors>
     <TargetFrameworks>net45;netstandard1.3</TargetFrameworks>
     <AssemblyName>Dapper.AmbientContext</AssemblyName>
