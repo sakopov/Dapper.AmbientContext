@@ -44,23 +44,20 @@ build:
   publish_nuget_symbols: true
 
 init:
-- ps: |
-    $revision = @{ $true = "{0:00000}" -f [convert]::ToInt32("0" + $env:APPVEYOR_BUILD_NUMBER, 10); $false = "local" }[$env:APPVEYOR_BUILD_NUMBER -ne $NULL];
-    $buildSuffix = @{ $true = ""; $false = "ci-$revision"}[$tag -ne $NULL -and $revision -ne "local"]
-    $env:BUILDSUFFIX = $buildSuffix
-    $env:SUFFIX = $env:APPVEYOR_BUILD_NUMBER
+- ps: $Env:LABEL = "CI" + $Env:APPVEYOR_BUILD_NUMBER.PadLeft(5, "0")
 
 before_build:
-- appveyor-retry dotnet restore "Dapper.AmbientContext.sln" -v Minimal
+- appveyor-retry dotnet restore -v Minimal
 
 build_script:
-- dotnet build "Dapper.AmbientContext.sln" -c %CONFIGURATION% --no-dependencies --version-suffix %BUILDSUFFIX%
+- dotnet build "src\Dapper.AmbientContext" -c %CONFIGURATION% --no-dependencies --version-suffix %LABEL%
+- dotnet build "test\Dapper.AmbientContext.Tests" -c %CONFIGURATION% --no-dependencies --version-suffix %LABEL%
 
 after_build:
-- dotnet pack "src\Dapper.AmbientContext\Dapper.AmbientContext.csproj" -c %CONFIGURATION% --include-symbols --version-suffix %SUFFIX% -o artifacts
+- dotnet pack "src\Dapper.AmbientContext" -c %CONFIGURATION% --no-build --version-suffix %LABEL% -o artifacts
 
 test_script:
-- dotnet test "test\Dapper.AmbientContext.Tests\Dapper.AmbientContext.Tests.csproj" --no-build -c %CONFIGURATION%
+- dotnet test "test\Dapper.AmbientContext.Tests\Dapper.AmbientContext.Tests.csproj" -c %CONFIGURATION%
 
 #---------------------------------#
 #      artifacts configuration    #
