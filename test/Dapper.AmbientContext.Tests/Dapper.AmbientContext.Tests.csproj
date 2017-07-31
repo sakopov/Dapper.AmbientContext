@@ -15,7 +15,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Dapper.AmbientContext\Dapper.AmbientContext.csproj" />
-    <ProjectReference Include="..\Dapper.AmbientContext\Dapper.AmbientContext.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
