@@ -64,4 +64,4 @@ test_script:
 #---------------------------------#
 
 artifacts:
-- path: artifacts\**\*.*
+- path: src\Dapper.AmbientContext\artifacts\**\*.*
