@@ -30,7 +30,8 @@ nuget:
   disable_publish_on_pr: true
 
 cache:
-  - packages -> '%USERPROFILE%\.nuget\packages'
+  - '%LocalAppData%\NuGet\Cache'
+  - '%LocalAppData%\NuGet\v3-cache'
 
 #---------------------------------#
 #       build configuration       #
