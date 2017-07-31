@@ -28,7 +28,11 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
+#if NET45
                 AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
+#else
+                AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());
+#endif
             };
 
             Because of = () =>

@@ -14,7 +14,11 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
+#if NET45
                 _storage = new LogicalCallContextStorage();
+#else
+                _storage = new AsyncLocalContextStorage();
+#endif
 
                 AmbientDbContextStorageProvider.SetStorage(_storage);
             };
@@ -46,7 +50,11 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
+#if NET45
                 AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
+#else
+                AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());
+#endif
 
                 _contextualStorageHelper = new ContextualStorageHelper(AmbientDbContextStorageProvider.Storage);
             };
@@ -76,7 +84,11 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
+#if NET45
                 AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
+#else
+                AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());
+#endif
 
                 _expectedAmbientDbContext = new Mock<IAmbientDbContext>().Object;
 
