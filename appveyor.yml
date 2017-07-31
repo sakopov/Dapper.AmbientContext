@@ -57,7 +57,7 @@ build_script:
 - dotnet build "Dapper.AmbientContext.sln" -c %CONFIGURATION% --no-dependencies --version-suffix %BUILDSUFFIX%
 
 after_build:
-- dotnet pack "src\Dapper.AmbientContext\Dapper.AmbientContext.csproj" -c %CONFIGURATION% --include-symbols --no-build --version-suffix %SUFFIX% -o artifacts
+- dotnet pack "src\Dapper.AmbientContext\Dapper.AmbientContext.csproj" -c %CONFIGURATION% --include-symbols --version-suffix %SUFFIX% -o artifacts
 
 test_script:
 - dotnet test "test\Dapper.AmbientContext.Tests\Dapper.AmbientContext.Tests.csproj" --no-build -c %CONFIGURATION%
