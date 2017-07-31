@@ -44,20 +44,27 @@ build:
   publish_nuget_symbols: true
 
 init:
-- ps: $Env:LABEL = "CI" + $Env:APPVEYOR_BUILD_NUMBER.PadLeft(5, "0")
+- ps: >-
+    $tag = $(git tag -l --points-at HEAD)
+    $revision = @{ $true = "{0:00000}" -f [convert]::ToInt32("0" + $env:APPVEYOR_BUILD_NUMBER, 10); $false = "local" }[$env:APPVEYOR_BUILD_NUMBER -ne $NULL];
+    $suffix = @{ $true = ""; $false = "ci-$revision"}[$tag -ne $NULL -and $revision -ne "local"]
+    $commitHash = $(git rev-parse --short HEAD)
+    $buildSuffix = @{ $true = "$($suffix)-$($commitHash)"; $false = "$($branch)-$($commitHash)" }[$suffix -ne ""]
+
+    $Env:SUFFIX = $suffix
+    $Env:BUILDSUFFIX = $buildSuffix
 
 before_build:
-- appveyor-retry dotnet restore -v Minimal
+- appveyor-retry dotnet restore "Dapper.AmbientContext.sln" -v Minimal
 
 build_script:
-- dotnet build "src\Dapper.AmbientContext" -c %CONFIGURATION% --no-dependencies --version-suffix %LABEL%
-- dotnet build "test\Dapper.AmbientContext.Tests" -c %CONFIGURATION% --no-dependencies --version-suffix %LABEL%
+- dotnet build "Dapper.AmbientContext.sln" -c %CONFIGURATION% --no-dependencies --version-suffix %BUILDSUFFIX%
 
 after_build:
-- dotnet pack "src\Dapper.AmbientContext" -c %CONFIGURATION% --no-build --version-suffix %LABEL% -o artifacts
+- dotnet pack "src\Dapper.AmbientContext\Dapper.AmbientContext.csproj" -c %CONFIGURATION% --include-symbols --no-build --version-suffix %SUFFIX% -o artifacts
 
 test_script:
-- dotnet test "test\Dapper.AmbientContext.Tests\Dapper.AmbientContext.Tests.csproj" -c %CONFIGURATION%
+- dotnet test "test\Dapper.AmbientContext.Tests\Dapper.AmbientContext.Tests.csproj" --no-build -c %CONFIGURATION%
 
 #---------------------------------#
 #      artifacts configuration    #
