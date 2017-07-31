@@ -9,13 +9,13 @@ pull_requests:
 
 branches:
   only:
-    - master
+    - core
 
 #---------------------------------#
 #    environment configuration    #
 #---------------------------------#
 
-image: Visual Studio 2015
+image: Visual Studio 2017
 
 assembly_info:
   patch: true
@@ -25,12 +25,8 @@ assembly_info:
   assembly_informational_version: '{version}'
 
 nuget:
-  account_feed: true
   project_feed: true
   disable_publish_on_pr: true
-
-cache:
-  - packages -> **\packages.config
 
 #---------------------------------#
 #       build configuration       #
@@ -40,33 +36,39 @@ platform: Any CPU
 
 configuration: Release
 
+environment:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+
 build:
-  parallel: true
-  project: Dapper.AmbientContext.sln
   publish_nuget: true
   publish_nuget_symbols: true
 
-  verbosity: normal
+init:
+- ps: >-
+  $tag = $(git tag -l --points-at HEAD)
+  $revision = @{ $true = "{0:00000}" -f [convert]::ToInt32("0" + $env:APPVEYOR_BUILD_NUMBER, 10); $false = "local" }[$env:APPVEYOR_BUILD_NUMBER -ne $NULL];
+  $suffix = @{ $true = ""; $false = "ci-$revision"}[$tag -ne $NULL -and $revision -ne "local"]
+  $commitHash = $(git rev-parse --short HEAD)
+  $buildSuffix = @{ $true = "$($suffix)-$($commitHash)"; $false = "$($branch)-$($commitHash)" }[$suffix -ne ""]
+
+  $Env:SUFFIX = $suffix
+  $Env:BUILDSUFFIX = $buildSuffix
 
 before_build:
-  - nuget restore
+- appveyor-retry dotnet restore "Dapper.AmbientContext.sln" -v Minimal
+
+build_script:
+- dotnet build "Dapper.AmbientContext.sln" -c %CONFIGURATION% --no-dependencies --version-suffix %BUILDSUFFIX%
+
+after_build:
+- dotnet pack "src\Dapper.AmbientContext\Dapper.AmbientContext.csproj" -c %CONFIGURATION% --include-symbols --no-build --version-suffix %SUFFIX% -o artifacts
+
+test_script:
+- dotnet test "test\Dapper.AmbientContext.Tests\Dapper.AmbientContext.Tests.csproj" --no-build -c %CONFIGURATION%
 
 #---------------------------------#
 #      artifacts configuration    #
 #---------------------------------#
 
 artifacts:
-  - path: '*.nupkg'
-  
-#---------------------------------#
-#     deployment configuration    #
-#---------------------------------#
-
-deploy:
-  - provider: NuGet
-    api_key:
-      secure: ZyNMTHl83Q+jbtyCaweu6ULT7jo2dGq+lF7TibDcVyE1aH9KKvdmf9FEHkRQHVCL
-    artifact: /.*\.nupkg/
-    on:
-      branch: master
-      appveyor_repo_tag: true  
+- path: src\Dapper.AmbientContext\artifacts\**\*.*
