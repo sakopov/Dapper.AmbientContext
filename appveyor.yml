@@ -39,6 +39,10 @@ configuration: Release
 environment:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
 
+build:
+  publish_nuget: true
+  publish_nuget_symbols: true
+
 init:
 - ps: $Env:LABEL = "CI" + $Env:APPVEYOR_BUILD_NUMBER.PadLeft(5, "0")
 
