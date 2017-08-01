@@ -45,9 +45,9 @@ build:
 
 init:
 - ps: |
-    $tag = $(git tag -l --points-at HEAD)
+    $tag = $env:APPVEYOR_REPO_TAG
     $revision = @{ $true = "{0:00000}" -f [convert]::ToInt32("0" + $env:APPVEYOR_BUILD_NUMBER, 10); $false = "local" }[$env:APPVEYOR_BUILD_NUMBER -ne $NULL];
-    $buildSuffix = @{ $true = ""; $false = "ci-$revision"}[$tag -ne $NULL -and $revision -ne "local"]
+    $buildSuffix = @{ $true = ""; $false = "ci-$revision"}[$tag -eq $true -and $revision -ne "local"]
     $env:LABEL = $buildSuffix
 
 before_build:
