@@ -2,7 +2,7 @@ Dapper.AmbientContext
 =======
 
 [![Build status](https://ci.appveyor.com/api/projects/status/omt8ahl09xbnp67t?svg=true)](https://ci.appveyor.com/project/sakopov/dapper-ambientcontext)
-[![NuGet Pre Release](https://img.shields.io/nuget/vpre/Dapper.AmbientContext.svg?maxAge=2592000)](https://www.nuget.org/packages/Dapper.AmbientContext)
+[![NuGet Pre Release](https://img.shields.io/nuget/vpre/Dapper.AmbientContext.svg)](https://www.nuget.org/packages/Dapper.AmbientContext)
 
 *Ambient context implementation for Dapper.*
 
