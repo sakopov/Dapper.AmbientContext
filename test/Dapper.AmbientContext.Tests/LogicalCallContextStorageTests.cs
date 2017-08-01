@@ -10,14 +10,18 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
-                _logicalCallContextStorage = new LogicalCallContextStorage();
+#if NET45
+                _storage = new LogicalCallContextStorage();
+#else
+                _storage = new AsyncLocalContextStorage();
+#endif
             };
 
             Because of = () =>
             {
-                _logicalCallContextStorage.SetValue("key", "value");
+                _storage.SetValue("key", "value");
 
-                _expectedValue = _logicalCallContextStorage.GetValue<string>("key");
+                _expectedValue = _storage.GetValue<string>("key");
             };
 
             It should_return_the_expected_value = () =>
@@ -27,11 +31,11 @@ namespace Dapper.AmbientContext.Tests
 
             Cleanup test = () =>
             {
-                _logicalCallContextStorage.RemoveValue("key");
+                _storage.RemoveValue("key");
             };
 
             private static string _expectedValue;
-            private static IContextualStorage _logicalCallContextStorage;
+            private static IContextualStorage _storage;
         }
 
         [Subject("Logical CallContext Storage")]
@@ -39,12 +43,16 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
-                _logicalCallContextStorage = new LogicalCallContextStorage();
+#if NET45
+                _storage = new LogicalCallContextStorage();
+#else
+                _storage = new AsyncLocalContextStorage();
+#endif
             };
 
             Because of = () =>
             {
-                _expectedValue = _logicalCallContextStorage.GetValue<string>("key");
+                _expectedValue = _storage.GetValue<string>("key");
             };
 
             It should_return_null = () =>
@@ -53,7 +61,7 @@ namespace Dapper.AmbientContext.Tests
             };
 
             private static string _expectedValue;
-            private static IContextualStorage _logicalCallContextStorage;
+            private static IContextualStorage _storage;
         }
 
         [Subject("Logical CallContext Storage")]
@@ -61,14 +69,18 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
-                _logicalCallContextStorage = new LogicalCallContextStorage();
+#if NET45
+                _storage = new LogicalCallContextStorage();
+#else
+                _storage = new AsyncLocalContextStorage();
+#endif
             };
 
             Because of = () =>
             {
-                _logicalCallContextStorage.SetValue("key", "value");
+                _storage.SetValue("key", "value");
 
-                _expectedValue = _logicalCallContextStorage.Exists("key");
+                _expectedValue = _storage.Exists("key");
             };
 
             It should_return_true = () =>
@@ -78,11 +90,11 @@ namespace Dapper.AmbientContext.Tests
 
             Cleanup test = () =>
             {
-                _logicalCallContextStorage.RemoveValue("key");
+                _storage.RemoveValue("key");
             };
 
             private static bool _expectedValue;
-            private static IContextualStorage _logicalCallContextStorage;
+            private static IContextualStorage _storage;
         }
 
         [Subject("Logical CallContext Storage")]
@@ -90,15 +102,19 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
-                _logicalCallContextStorage = new LogicalCallContextStorage();
+#if NET45
+                _storage = new LogicalCallContextStorage();
+#else
+                _storage = new AsyncLocalContextStorage();
+#endif
             };
 
             Because of = () =>
             {
-                _logicalCallContextStorage.SetValue("key", "value");
-                _logicalCallContextStorage.RemoveValue("key");
+                _storage.SetValue("key", "value");
+                _storage.RemoveValue("key");
 
-                _expectedValue = _logicalCallContextStorage.Exists("key");
+                _expectedValue = _storage.Exists("key");
             };
 
             It should_be_removed = () =>
@@ -108,11 +124,11 @@ namespace Dapper.AmbientContext.Tests
 
             Cleanup test = () =>
             {
-                _logicalCallContextStorage.RemoveValue("key");
+                _storage.RemoveValue("key");
             };
 
             private static bool _expectedValue;
-            private static IContextualStorage _logicalCallContextStorage;
+            private static IContextualStorage _storage;
         }
     }
 }

@@ -78,8 +78,11 @@ namespace Dapper.AmbientContext.Storage
         /// </returns>
         public IImmutableStack<IAmbientDbContext> GetStack()
         {
+#if NET45
             var crossReferenceKey = _storage.GetValue<ContextualStorageItem>(AmbientDbContextStorageKey.Key);
-
+#else
+            var crossReferenceKey = _storage.GetValue<string>(AmbientDbContextStorageKey.Key);
+#endif
             // This can only happen if something explicitly calls RemoveValue on the storage. Otherwise, there will 
             // always be a value in storage.
             if (crossReferenceKey == null)
@@ -89,8 +92,11 @@ namespace Dapper.AmbientContext.Storage
 
             IImmutableStack<IAmbientDbContext> value;
 
+#if NET45
             AmbientDbContextTable.TryGetValue(crossReferenceKey.Value, out value);
-
+#else
+            AmbientDbContextTable.TryGetValue(crossReferenceKey, out value);
+#endif
             return value;
         }
 
@@ -102,8 +108,11 @@ namespace Dapper.AmbientContext.Storage
         /// </param>
         public void SaveStack(IImmutableStack<IAmbientDbContext> stack)
         {
+#if NET45
             var crossReferenceKey = _storage.GetValue<ContextualStorageItem>(AmbientDbContextStorageKey.Key);
-
+#else
+            var crossReferenceKey = _storage.GetValue<string>(AmbientDbContextStorageKey.Key);
+#endif
             // This can only happen if something explicitly calls RemoveValue on the storage. Otherwise, there will 
             // always be a value in storage.
             if (crossReferenceKey == null)
@@ -114,12 +123,21 @@ namespace Dapper.AmbientContext.Storage
             IImmutableStack<IAmbientDbContext> value;
 
             // Drop the existing key and recreate because the value is immutable
+#if NET45
             if (AmbientDbContextTable.TryGetValue(crossReferenceKey.Value, out value))
             {
                 AmbientDbContextTable.Remove(crossReferenceKey.Value);
             }
 
             AmbientDbContextTable.Add(crossReferenceKey.Value, stack);
+#else
+            if (AmbientDbContextTable.TryGetValue(crossReferenceKey, out value))
+            {
+                AmbientDbContextTable.Remove(crossReferenceKey);
+            }
+
+            AmbientDbContextTable.Add(crossReferenceKey, stack);
+#endif
         }
 
         /// <summary>
@@ -128,18 +146,30 @@ namespace Dapper.AmbientContext.Storage
         /// </summary>
         private void Initialize()
         {
+#if NET45
             var crossReferenceKey = _storage.GetValue<ContextualStorageItem>(AmbientDbContextStorageKey.Key);
+#else
+            var crossReferenceKey = _storage.GetValue<string>(AmbientDbContextStorageKey.Key);
+#endif
 
             if (crossReferenceKey == null)
             {
+#if NET45
                 crossReferenceKey = new ContextualStorageItem(Guid.NewGuid().ToString("N"));
-
+#else
+                crossReferenceKey = Guid.NewGuid().ToString("N");
+#endif
                 _storage.SetValue(AmbientDbContextStorageKey.Key, crossReferenceKey);
 
+#if NET45
                 AmbientDbContextTable.Add(crossReferenceKey.Value, ImmutableStack.Create<IAmbientDbContext>());
+#else
+                AmbientDbContextTable.Add(crossReferenceKey, ImmutableStack.Create<IAmbientDbContext>());
+#endif
             }
         }
 
+#if NET45
         /// <summary>
         /// Wraps values in storage to enable access across AppDomains. While all storage
         /// mechanisms will use the same approach, it is only required for the Logical 
@@ -163,5 +193,6 @@ namespace Dapper.AmbientContext.Storage
             /// </summary>
             public string Value { get; }
         }
+#endif
     }
 }

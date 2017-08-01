@@ -2,14 +2,14 @@
 #      general configuration      #
 #---------------------------------#
 
-version: 1.0.{build}
+version: '{build}'
 
 pull_requests:
   do_not_increment_build_number: true
 
 branches:
   only:
-    - core
+    - master
 
 #---------------------------------#
 #    environment configuration    #
@@ -44,27 +44,24 @@ build:
   publish_nuget_symbols: true
 
 init:
-- ps: >-
-    $tag = $(git tag -l --points-at HEAD)
+- ps: |
+    $tag = $env:APPVEYOR_REPO_TAG
     $revision = @{ $true = "{0:00000}" -f [convert]::ToInt32("0" + $env:APPVEYOR_BUILD_NUMBER, 10); $false = "local" }[$env:APPVEYOR_BUILD_NUMBER -ne $NULL];
-    $suffix = @{ $true = ""; $false = "ci-$revision"}[$tag -ne $NULL -and $revision -ne "local"]
-    $commitHash = $(git rev-parse --short HEAD)
-    $buildSuffix = @{ $true = "$($suffix)-$($commitHash)"; $false = "$($branch)-$($commitHash)" }[$suffix -ne ""]
-
-    $Env:SUFFIX = $suffix
-    $Env:BUILDSUFFIX = $buildSuffix
+    $buildSuffix = @{ $true = ""; $false = "ci-$revision"}[$tag -eq $true -and $revision -ne "local"]
+    $env:LABEL = $buildSuffix
 
 before_build:
-- appveyor-retry dotnet restore "Dapper.AmbientContext.sln" -v Minimal
+- appveyor-retry dotnet restore -v Minimal
 
 build_script:
-- dotnet build "Dapper.AmbientContext.sln" -c %CONFIGURATION% --no-dependencies --version-suffix %BUILDSUFFIX%
+- dotnet build "src\Dapper.AmbientContext" -c %CONFIGURATION% --no-dependencies --version-suffix %LABEL%
+- dotnet build "test\Dapper.AmbientContext.Tests" -c %CONFIGURATION% --no-dependencies --version-suffix %LABEL%
 
 after_build:
-- dotnet pack "src\Dapper.AmbientContext\Dapper.AmbientContext.csproj" -c %CONFIGURATION% --include-symbols --no-build --version-suffix %SUFFIX% -o artifacts
+- dotnet pack "src\Dapper.AmbientContext" -c %CONFIGURATION% --no-build --include-symbols --version-suffix %LABEL% -o artifacts
 
 test_script:
-- dotnet test "test\Dapper.AmbientContext.Tests\Dapper.AmbientContext.Tests.csproj" --no-build -c %CONFIGURATION%
+- dotnet test "test\Dapper.AmbientContext.Tests\Dapper.AmbientContext.Tests.csproj" -c %CONFIGURATION%
 
 #---------------------------------#
 #      artifacts configuration    #
@@ -72,3 +69,16 @@ test_script:
 
 artifacts:
 - path: src\Dapper.AmbientContext\artifacts\**\*.*
+
+#---------------------------------#
+#     deployment configuration    #
+#---------------------------------#
+
+deploy:
+  - provider: NuGet
+    api_key:
+      secure: ZyNMTHl83Q+jbtyCaweu6ULT7jo2dGq+lF7TibDcVyE1aH9KKvdmf9FEHkRQHVCL
+    artifact: /.*\.nupkg/
+    on:
+      branch: master
+      appveyor_repo_tag: true  

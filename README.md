@@ -2,8 +2,6 @@ Dapper.AmbientContext
 =======
 
 [![Build status](https://ci.appveyor.com/api/projects/status/omt8ahl09xbnp67t?svg=true)](https://ci.appveyor.com/project/sakopov/dapper-ambientcontext)
-[![Test status](http://teststatusbadge.azurewebsites.net/api/status/sakopov/dapper-ambientcontext)]
-(https://ci.appveyor.com/project/sakopov/dapper-ambientcontext)
 [![NuGet Pre Release](https://img.shields.io/nuget/vpre/Dapper.AmbientContext.svg?maxAge=2592000)](https://www.nuget.org/packages/Dapper.AmbientContext)
 
 *Ambient context implementation for Dapper.*
@@ -14,7 +12,7 @@ Dapper.AmbientContext uses a similar approach to treat the database connection a
 
 More information in the [wiki](https://github.com/sakopov/Dapper.AmbientContext/wiki).
 
-##Installation
+## Installation
 
 Install [Dapper.AmbientContext with NuGet](https://www.nuget.org/packages/Dapper.AmbientContext)
 

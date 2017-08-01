@@ -1,4 +1,5 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
+﻿#if NETSTANDARD1_3
+// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="LogicalCallContextStorage.cs">
 //   Copyright (c) 2016 Sergey Akopov
 //   
@@ -21,19 +22,21 @@
 //   THE SOFTWARE.
 // </copyright>
 // <summary>
-//   Represents the type that implements storage on top of logical call context.
+//   Represents the type that implements storage on top of AsyncLocal context.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace Dapper.AmbientContext.Storage
 {
-    using System.Runtime.Remoting.Messaging;
+    using System.Threading;
 
     /// <summary>
-    /// Represents the type that implements storage on top of logical call context.
+    /// Represents the type that implements storage on top of AsyncLocal context.
     /// </summary>
-    public sealed class LogicalCallContextStorage : IContextualStorage
+    public class AsyncLocalContextStorage : IContextualStorage
     {
+        private static readonly AsyncLocal<object> Storage = new AsyncLocal<object>();
+
         /// <summary>
         /// Returns an entry from the storage.
         /// </summary>
@@ -48,7 +51,7 @@ namespace Dapper.AmbientContext.Storage
         /// </returns>
         public T GetValue<T>(string key)
         {
-            return (T)CallContext.LogicalGetData(key);
+            return (T)Storage.Value;
         }
 
         /// <summary>
@@ -62,7 +65,7 @@ namespace Dapper.AmbientContext.Storage
         /// </returns>
         public bool Exists(string key)
         {
-            return CallContext.LogicalGetData(key) != null;
+            return Storage.Value != null;
         }
 
         /// <summary>
@@ -73,7 +76,7 @@ namespace Dapper.AmbientContext.Storage
         /// </param>
         public void RemoveValue(string key)
         {
-            CallContext.FreeNamedDataSlot(key);
+            Storage.Value = null;
         }
 
         /// <summary>
@@ -90,7 +93,8 @@ namespace Dapper.AmbientContext.Storage
         /// </typeparam>
         public void SetValue<T>(string key, T value)
         {
-            CallContext.LogicalSetData(key, value);
+            Storage.Value = value;
         }
     }
 }
+#endif

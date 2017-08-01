@@ -14,7 +14,11 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
+#if NET45
                 AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
+#else
+                AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());
+#endif
 
                 var dbConnectionState = ConnectionState.Open;
 
@@ -52,7 +56,11 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
+#if NET45
                 AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
+#else
+                AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());
+#endif
 
                 _dbConnectionMock = new Mock<IDbConnection>();
                 _dbConnectionMock.Setup(mock => mock.State).Returns(() => ConnectionState.Closed);
