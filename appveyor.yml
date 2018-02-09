@@ -45,19 +45,15 @@ build:
 
 init:
 - ps: |
-    $tag = $env:APPVEYOR_REPO_TAG
     $revision = "{0:00000}" -f [convert]::ToInt32("0" + $env:APPVEYOR_BUILD_NUMBER, 10)
-    $suffix = @{ $true = ""; $false = "ci-$revision"}[$tag -eq $true]
-    $buildSuffix = "ci-$revision"
-    $env:BUILD_SUFFIX = $buildSuffix
-    $env:SUFFIX = $suffix
+    $env:VERSION_SUFFIX = "ci-$revision"
 
 before_build:
 - appveyor-retry dotnet restore -v Minimal
 
 build_script:
-- dotnet build "src\Dapper.AmbientContext" -c %CONFIGURATION% --no-dependencies --version-suffix %BUILD_SUFFIX%
-- dotnet build "test\Dapper.AmbientContext.Tests" -c %CONFIGURATION% --no-dependencies --version-suffix %BUILD_SUFFIX%
+- dotnet build "src\Dapper.AmbientContext" -c %CONFIGURATION% --no-dependencies --version-suffix %VERSION_SUFFIX%
+- dotnet build "test\Dapper.AmbientContext.Tests" -c %CONFIGURATION% --no-dependencies --version-suffix %VERSION_SUFFIX%
 
 after_build:
 - ps: |
@@ -67,7 +63,7 @@ after_build:
     }
     else
     {
-      dotnet pack "src\Dapper.AmbientContext" -c $env:CONFIGURATION --no-build --include-symbols -o artifacts --version-suffix $env:BUILD_SUFFIX
+      dotnet pack "src\Dapper.AmbientContext" -c $env:CONFIGURATION --no-build --include-symbols -o artifacts --version-suffix $env:VERSION_SUFFIX
     }
 
 test_script:
