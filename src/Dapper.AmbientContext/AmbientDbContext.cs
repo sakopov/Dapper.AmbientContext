@@ -142,11 +142,19 @@ namespace Dapper.AmbientContext
 
             if (Parent == null)
             {
-                if (Connection?.State == ConnectionState.Open)
+                if (Transaction != null)
                 {
-                    Connection.Close();
-                    Connection.Dispose();
+                    Commit();
+                }
 
+                if (Connection != null)
+                {
+                    if (Connection.State == ConnectionState.Open)
+                    {
+                        Connection.Close();
+                    }
+
+                    Connection.Dispose();
                     Connection = null;
                 }
             }

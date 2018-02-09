@@ -248,6 +248,82 @@ namespace Dapper.AmbientContext.Tests
         }
 
         [Subject("Ambient DB Context Disposal")]
+        class When_disposing_single_ambient_database_context_without_explicit_commit
+        {
+            Establish context = () =>
+            {
+#if NET45
+                AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
+#else
+                AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());
+#endif
+
+                _storageHelper = new ContextualStorageHelper(AmbientDbContextStorageProvider.Storage);
+
+                var dbConnectionState = ConnectionState.Closed;
+
+                _dbConnectionMock = new Mock<IDbConnection>();
+                _dbConnectionMock.Setup(mock => mock.State).Returns(() => dbConnectionState);
+                _dbConnectionMock.Setup(mock => mock.Open()).Callback(() => dbConnectionState = ConnectionState.Open);
+
+                _dbTransactionMock = new Mock<IDbTransaction>();
+
+                _dbConnectionMock.Setup(mock => mock.BeginTransaction(Moq.It.IsAny<IsolationLevel>())).Returns(() => _dbTransactionMock.Object);
+
+                _ambientDbContext = new AmbientDbContext(_dbConnectionMock.Object, true, false, IsolationLevel.ReadCommitted);
+
+                _ambientDbContext.PrepareConnectionAndTransaction();
+            };
+
+            Because of = () =>
+            {
+                _ambientDbContext.Dispose();
+            };
+
+            It should_close_the_database_transaction = () =>
+            {
+                _dbTransactionMock.Verify(mock => mock.Commit(), Times.Once);
+            };
+
+            It should_dispose_the_database_transaction = () =>
+            {
+                _dbTransactionMock.Verify(mock => mock.Dispose(), Times.Once);
+            };
+
+            It should_close_the_database_connection = () =>
+            {
+                _dbConnectionMock.Verify(mock => mock.Close(), Times.Once);
+            };
+
+            It should_dispose_the_database_connection = () =>
+            {
+                _dbConnectionMock.Verify(mock => mock.Dispose(), Times.Once);
+            };
+
+            It should_set_the_database_connection_to_null = () =>
+            {
+                _ambientDbContext.Connection.ShouldBeNull();
+            };
+
+            It should_pop_ambient_database_context_from_stack = () =>
+            {
+                var stack = _storageHelper.GetStack();
+
+                stack.IsEmpty.ShouldEqual(true);
+            };
+
+            Cleanup test = () =>
+            {
+                AmbientDbContextStorageProvider.SetStorage(null);
+            };
+
+            private static Mock<IDbConnection> _dbConnectionMock;
+            private static Mock<IDbTransaction> _dbTransactionMock;
+            private static AmbientDbContext _ambientDbContext;
+            private static ContextualStorageHelper _storageHelper;
+        }
+
+        [Subject("Ambient DB Context Disposal")]
         class When_disposing_multiple_joined_ambient_database_contexts
         {
             Establish context = () =>
@@ -537,7 +613,7 @@ namespace Dapper.AmbientContext.Tests
 
             It should_rethrow_the_exception = () =>
             {
-                _exception.ShouldNotBeNull();  
+                _exception.ShouldNotBeNull();
             };
 
             It should_rollback_the_database_transaction = () =>
