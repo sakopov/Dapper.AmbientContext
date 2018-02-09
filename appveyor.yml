@@ -60,7 +60,15 @@ build_script:
 - dotnet build "test\Dapper.AmbientContext.Tests" -c %CONFIGURATION% --no-dependencies --version-suffix %BUILD_SUFFIX%
 
 after_build:
-- dotnet pack "src\Dapper.AmbientContext" -c %CONFIGURATION% --no-build --include-symbols -o artifacts
+- ps: |
+    if ($env:APPVEYOR_REPO_TAG -eq $true)
+    {
+      dotnet pack "src\Dapper.AmbientContext" -c $env:CONFIGURATION --no-build --include-symbols -o artifacts
+    }
+    else
+    {
+      dotnet pack "src\Dapper.AmbientContext" -c $env:CONFIGURATION --no-build --include-symbols -o artifacts --version-suffix $env:BUILD_SUFFIX
+    }
 
 test_script:
 - dotnet test "test\Dapper.AmbientContext.Tests\Dapper.AmbientContext.Tests.csproj" -c %CONFIGURATION%
