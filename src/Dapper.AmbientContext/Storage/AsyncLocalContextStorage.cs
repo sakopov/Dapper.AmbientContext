@@ -1,4 +1,4 @@
-﻿#if NETSTANDARD1_3
+﻿#if NETSTANDARD1_3 || NETSTANDARD2_0
 // --------------------------------------------------------------------------------------------------------------------
 // <copyright file="LogicalCallContextStorage.cs">
 //   Copyright (c) 2016 Sergey Akopov

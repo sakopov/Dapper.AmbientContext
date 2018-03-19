@@ -24,7 +24,7 @@
 //   Represents the type that implements storage on top of logical call context.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
-#if NET45
+#if NET451
 namespace Dapper.AmbientContext.Storage
 {
     using System.Runtime.Remoting.Messaging;

@@ -385,6 +385,37 @@ namespace Dapper.AmbientContext
         /// Execute a single-row query asynchronously using .NET 4.5 
         /// <see cref="System.Threading.Tasks.Task"/>.
         /// </summary>
+        /// <param name="sql">
+        /// The SQL statement to execute.
+        /// </param>
+        /// <param name="param">
+        /// The SQL query parameters.
+        /// </param>
+        /// <param name="commandTimeout">
+        /// The number of seconds before command execution timeout.
+        /// </param>
+        /// <param name="commandType">
+        /// Determines whether the command is a stored procedure or a batch.
+        /// </param>
+        /// <returns>
+        /// A task representing the asynchronous operation.
+        /// </returns>
+        public async Task<dynamic> QueryFirstOrDefaultAsync(
+            string sql,
+            object param = null,
+            int? commandTimeout = null,
+            CommandType? commandType = null)
+        {
+            await PrepareConnectionAndTransactionAsync(default(CancellationToken)).ConfigureAwait(false);
+
+            return await Connection.QueryFirstOrDefaultAsync(sql, param, Transaction, commandTimeout, commandType)
+                .ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Execute a single-row query asynchronously using .NET 4.5 
+        /// <see cref="System.Threading.Tasks.Task"/>.
+        /// </summary>
         /// <typeparam name="T">
         /// The return type.
         /// </typeparam>
@@ -412,6 +443,37 @@ namespace Dapper.AmbientContext
             await PrepareConnectionAndTransactionAsync(default(CancellationToken)).ConfigureAwait(false);
 
             return await Connection.QuerySingleAsync<T>(sql, param, Transaction, commandTimeout, commandType)
+                .ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Execute a single-row query asynchronously using .NET 4.5 
+        /// <see cref="System.Threading.Tasks.Task"/>.
+        /// </summary>
+        /// <param name="sql">
+        /// The SQL statement to execute.
+        /// </param>
+        /// <param name="param">
+        /// The SQL query parameters.
+        /// </param>
+        /// <param name="commandTimeout">
+        /// The number of seconds before command execution timeout.
+        /// </param>
+        /// <param name="commandType">
+        /// Determines whether the command is a stored procedure or a batch.
+        /// </param>
+        /// <returns>
+        /// A task representing the asynchronous operation.
+        /// </returns>
+        public async Task<dynamic> QuerySingleAsync(
+            string sql,
+            object param = null,
+            int? commandTimeout = null,
+            CommandType? commandType = null)
+        {
+            await PrepareConnectionAndTransactionAsync(default(CancellationToken)).ConfigureAwait(false);
+
+            return await Connection.QuerySingleAsync(sql, param, Transaction, commandTimeout, commandType)
                 .ConfigureAwait(false);
         }
 
@@ -446,6 +508,89 @@ namespace Dapper.AmbientContext
             await PrepareConnectionAndTransactionAsync(default(CancellationToken)).ConfigureAwait(false);
 
             return await Connection.QuerySingleOrDefaultAsync<T>(sql, param, Transaction, commandTimeout, commandType)
+                .ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Execute a single-row query asynchronously using .NET 4.5
+        /// <see cref="System.Threading.Tasks.Task"/>.
+        /// </summary>
+        /// <typeparam name="T">
+        /// The return type.
+        /// </typeparam>
+        /// <param name="command">
+        /// The SQL command definition.
+        /// </param>
+        /// <returns>
+        /// A task representing the asynchronous operation.
+        /// </returns>
+        public async Task<T> QuerySingleOrDefaultAsync<T>(CommandDefinition command)
+        {
+            await PrepareConnectionAndTransactionAsync(default(CancellationToken)).ConfigureAwait(false);
+
+            return await Connection.QuerySingleOrDefaultAsync<T>(command)
+                .ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Execute a single-row query asynchronously using .NET 4.5
+        /// <see cref="System.Threading.Tasks.Task"/>.
+        /// </summary>
+        /// <param name="sql">
+        /// The SQL statement to execute.
+        /// </param>
+        /// <param name="param">
+        /// The SQL query parameters.
+        /// </param>
+        /// <param name="commandTimeout">
+        /// The number of seconds before command execution timeout.
+        /// </param>
+        /// <param name="commandType">
+        /// Determines whether the command is a stored procedure or a batch.
+        /// </param>
+        /// <returns>
+        /// A task representing the asynchronous operation.
+        /// </returns>
+        public async Task<dynamic> QuerySingleOrDefaultAsync(
+            string sql,
+            object param = null,
+            int? commandTimeout = null,
+            CommandType? commandType = null)
+        {
+            await PrepareConnectionAndTransactionAsync(default(CancellationToken)).ConfigureAwait(false);
+
+            return await Connection.QuerySingleOrDefaultAsync(sql, param, Transaction, commandTimeout, commandType)
+                .ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Execute a single-row query asynchronously using .NET 4.5
+        /// <see cref="System.Threading.Tasks.Task"/>.
+        /// </summary>
+        /// <param name="sql">
+        /// The SQL statement to execute.
+        /// </param>
+        /// <param name="param">
+        /// The SQL query parameters.
+        /// </param>
+        /// <param name="commandTimeout">
+        /// The number of seconds before command execution timeout.
+        /// </param>
+        /// <param name="commandType">
+        /// Determines whether the command is a stored procedure or a batch.
+        /// </param>
+        /// <returns>
+        /// A task representing the asynchronous operation.
+        /// </returns>
+        public async Task<dynamic> QueryFirstAsync(
+            string sql,
+            object param = null,
+            int? commandTimeout = null,
+            CommandType? commandType = null)
+        {
+            await PrepareConnectionAndTransactionAsync(default(CancellationToken)).ConfigureAwait(false);
+
+            return await Connection.QueryFirstAsync(sql, param, Transaction, commandTimeout, commandType)
                 .ConfigureAwait(false);
         }
 
