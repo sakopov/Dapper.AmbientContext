@@ -67,8 +67,8 @@ after_build:
     }
 
 test_script:
-- dotnet test "test\Dapper.AmbientContext.Tests\Dapper.AmbientContext.Tests.csproj" -c %CONFIGURATION% -f net451
-- dotnet test "test\Dapper.AmbientContext.Tests\Dapper.AmbientContext.Tests.csproj" -c %CONFIGURATION% -f netcoreapp2.1
+- dotnet test "test\Dapper.AmbientContext.Tests\Dapper.AmbientContext.Tests.csproj" --no-build --no-restore -c %CONFIGURATION% -f net451
+- dotnet test "test\Dapper.AmbientContext.Tests\Dapper.AmbientContext.Tests.csproj" --no-build --no-restore -c %CONFIGURATION% -f netcoreapp2.1
 
 #---------------------------------#
 #      artifacts configuration    #
