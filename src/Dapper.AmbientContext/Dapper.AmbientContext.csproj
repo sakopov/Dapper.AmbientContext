@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>Ambient context implementation for Dapper.NET</Description>
     <Copyright>Copyright Sergey Akopov</Copyright>
-    <VersionPrefix>1.6.0</VersionPrefix>
+    <VersionPrefix>1.7.0</VersionPrefix>
     <Authors>Sergey Akopov</Authors>
     <TargetFrameworks>net451;netstandard1.3;netstandard2.0</TargetFrameworks>
     <AssemblyName>Dapper.AmbientContext</AssemblyName>
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="1.50.5" />
+    <PackageReference Include="Dapper" Version="1.60.1" />
     <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
   </ItemGroup>
 
