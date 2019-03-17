@@ -10,7 +10,6 @@
     <PackageReference Include="Machine.Specifications.Should" Version="0.11.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
     <PackageReference Include="Moq" Version="4.10.1" />
-    <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
   </ItemGroup>
 
   <ItemGroup>
