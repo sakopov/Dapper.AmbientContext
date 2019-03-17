@@ -10,7 +10,7 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
-#if NET451
+#if NET452
                 _storage = new LogicalCallContextStorage();
 #else
                 _storage = new AsyncLocalContextStorage();
@@ -43,7 +43,7 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
-#if NET451
+#if NET452
                 _storage = new LogicalCallContextStorage();
 #else
                 _storage = new AsyncLocalContextStorage();
@@ -69,7 +69,7 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
-#if NET451
+#if NET452
                 _storage = new LogicalCallContextStorage();
 #else
                 _storage = new AsyncLocalContextStorage();
@@ -102,7 +102,7 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
-#if NET451
+#if NET452
                 _storage = new LogicalCallContextStorage();
 #else
                 _storage = new AsyncLocalContextStorage();
