@@ -141,6 +141,32 @@ namespace Dapper.AmbientContext.Storage
         }
 
         /// <summary>
+        /// Removes all stacks from the storage.
+        /// </summary>
+        public void Clear()
+        {
+#if NET451
+            var crossReferenceKey = _storage.GetValue<ContextualStorageItem>(AmbientDbContextStorageKey.Key);
+#else
+            var crossReferenceKey = _storage.GetValue<string>(AmbientDbContextStorageKey.Key);
+#endif
+            // This can only happen if something explicitly calls RemoveValue on the storage. Otherwise, there will 
+            // always be a value in storage.
+            if (crossReferenceKey == null)
+            {
+                throw new AmbientDbContextException("Could not find ambient database context stack in the storage.");
+            }
+
+#if NET451
+            AmbientDbContextTable.Remove(crossReferenceKey.Value);
+#else
+            AmbientDbContextTable.Remove(crossReferenceKey);
+#endif
+
+            _storage.RemoveValue(AmbientDbContextStorageKey.Key);
+        }
+
+        /// <summary>
         /// Creates a cross-reference in the storage, which points to the stack of <see cref="AmbientDbContext"/>
         /// in the ConditionalWeakTable.
         /// </summary>

@@ -195,10 +195,11 @@ namespace Dapper.AmbientContext.Tests
             Establish context = () =>
             {
 #if NET452
-                AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
+                _storage = new LogicalCallContextStorage();
 #else
-                AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());
+                _storage = new AsyncLocalContextStorage();
 #endif
+                AmbientDbContextStorageProvider.SetStorage(_storage);
 
                 _storageHelper = new ContextualStorageHelper(AmbientDbContextStorageProvider.Storage);
 
@@ -230,11 +231,9 @@ namespace Dapper.AmbientContext.Tests
                 _ambientDbContext.Connection.ShouldBeNull();
             };
 
-            It should_pop_ambient_database_context_from_stack = () =>
+            It should_clear_contextual_storage = () =>
             {
-                var stack = _storageHelper.GetStack();
-
-                stack.IsEmpty.ShouldEqual(true);
+                _storage.GetValue<object>(AmbientDbContextStorageKey.Key).ShouldBeNull();
             };
 
             Cleanup test = () =>
@@ -242,6 +241,7 @@ namespace Dapper.AmbientContext.Tests
                 AmbientDbContextStorageProvider.SetStorage(null);
             };
 
+            private static IContextualStorage _storage;
             private static Mock<IDbConnection> _dbConnectionMock;
             private static AmbientDbContext _ambientDbContext;
             private static ContextualStorageHelper _storageHelper;
@@ -253,10 +253,11 @@ namespace Dapper.AmbientContext.Tests
             Establish context = () =>
             {
 #if NET452
-                AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
+                _storage = new LogicalCallContextStorage();
 #else
-                AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());
+                _storage = new AsyncLocalContextStorage();
 #endif
+                AmbientDbContextStorageProvider.SetStorage(_storage);
 
                 _storageHelper = new ContextualStorageHelper(AmbientDbContextStorageProvider.Storage);
 
@@ -305,11 +306,9 @@ namespace Dapper.AmbientContext.Tests
                 _ambientDbContext.Connection.ShouldBeNull();
             };
 
-            It should_pop_ambient_database_context_from_stack = () =>
+            It should_clear_contextual_storage = () =>
             {
-                var stack = _storageHelper.GetStack();
-
-                stack.IsEmpty.ShouldEqual(true);
+                _storage.GetValue<object>(AmbientDbContextStorageKey.Key).ShouldBeNull();
             };
 
             Cleanup test = () =>
@@ -317,6 +316,7 @@ namespace Dapper.AmbientContext.Tests
                 AmbientDbContextStorageProvider.SetStorage(null);
             };
 
+            private static IContextualStorage _storage;
             private static Mock<IDbConnection> _dbConnectionMock;
             private static Mock<IDbTransaction> _dbTransactionMock;
             private static AmbientDbContext _ambientDbContext;
@@ -329,10 +329,11 @@ namespace Dapper.AmbientContext.Tests
             Establish context = () =>
             {
 #if NET452
-                AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
+                _storage = new LogicalCallContextStorage();
 #else
-                AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());
+                _storage = new AsyncLocalContextStorage();
 #endif
+                AmbientDbContextStorageProvider.SetStorage(_storage);
 
                 _storageHelper = new ContextualStorageHelper(AmbientDbContextStorageProvider.Storage);
 
@@ -384,11 +385,9 @@ namespace Dapper.AmbientContext.Tests
                 _parentAmbientDbContext1.Connection.ShouldBeNull();
             };
 
-            It should_pop_both_database_contexts_off_the_stack = () =>
+            It should_clear_contextual_storage = () =>
             {
-                var stack = _storageHelper.GetStack();
-
-                stack.IsEmpty.ShouldEqual(true);
+                _storage.GetValue<object>(AmbientDbContextStorageKey.Key).ShouldBeNull();
             };
 
             Cleanup test = () =>
@@ -396,6 +395,7 @@ namespace Dapper.AmbientContext.Tests
                 AmbientDbContextStorageProvider.SetStorage(null);
             };
 
+            private static IContextualStorage _storage;
             private static Mock<IDbConnection> _parentDbConnection1Mock;
             private static Mock<IDbConnection> _childDbConnection2Mock;
             private static AmbientDbContext _parentAmbientDbContext1;
@@ -409,10 +409,12 @@ namespace Dapper.AmbientContext.Tests
             Establish context = () =>
             {
 #if NET452
-                AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
+                _storage = new LogicalCallContextStorage();
 #else
-                AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());
+                _storage = new AsyncLocalContextStorage();
 #endif
+
+                AmbientDbContextStorageProvider.SetStorage(_storage);
 
                 _storageHelper = new ContextualStorageHelper(AmbientDbContextStorageProvider.Storage);
 
@@ -464,11 +466,9 @@ namespace Dapper.AmbientContext.Tests
                 _ambientDbContext1.Connection.ShouldBeNull();
             };
 
-            It should_pop_both_database_contexts_off_the_stack = () =>
+            It should_clear_contextual_storage = () =>
             {
-                var stack = _storageHelper.GetStack();
-
-                stack.IsEmpty.ShouldEqual(true);
+                _storage.GetValue<object>(AmbientDbContextStorageKey.Key).ShouldBeNull();
             };
 
             Cleanup test = () =>
@@ -476,6 +476,7 @@ namespace Dapper.AmbientContext.Tests
                 AmbientDbContextStorageProvider.SetStorage(null);
             };
 
+            private static IContextualStorage _storage;
             private static Mock<IDbConnection> _dbConnection1Mock;
             private static Mock<IDbConnection> _dbConnection2Mock;
             private static AmbientDbContext _ambientDbContext1;
@@ -574,6 +575,93 @@ namespace Dapper.AmbientContext.Tests
             private static Mock<IDbConnection> _childDbConnection2Mock;
             private static AmbientDbContext _parentAmbientDbContext1;
             private static AmbientDbContext _parentAmbientDbContext2;
+            private static ContextualStorageHelper _storageHelper;
+        }
+
+        [Subject("Ambient DB Context Disposal")]
+        class When_disposing_one_of_disjoined_ambient_database_contexts
+        {
+            Establish context = () =>
+            {
+#if NET452
+                _storage = new LogicalCallContextStorage();
+#else
+                _storage = new AsyncLocalContextStorage();
+#endif
+
+                AmbientDbContextStorageProvider.SetStorage(_storage);
+
+                _storageHelper = new ContextualStorageHelper(AmbientDbContextStorageProvider.Storage);
+
+                var dbConnectionState = ConnectionState.Open;
+
+                _dbConnection1Mock = new Mock<IDbConnection>();
+                _dbConnection1Mock.Setup(mock => mock.State).Returns(() => dbConnectionState);
+
+                _dbConnection2Mock = new Mock<IDbConnection>();
+                _dbConnection2Mock.Setup(mock => mock.State).Returns(() => dbConnectionState);
+
+                _ambientDbContext1 = new AmbientDbContext(_dbConnection1Mock.Object, false, true, IsolationLevel.ReadCommitted);
+                _ambientDbContext2 = new AmbientDbContext(_dbConnection2Mock.Object, false, true, IsolationLevel.ReadCommitted);
+            };
+
+            Because of = () =>
+            {
+                _ambientDbContext2.Dispose();
+            };
+
+            It should_close_the_database_connection_on_the_disposed_ambient_database_context = () =>
+            {
+                _dbConnection2Mock.Verify(mock => mock.Close(), Times.Once);
+            };
+
+            It should_dispose_the_database_connection_on_the_disposed_ambient_database_context = () =>
+            {
+                _dbConnection2Mock.Verify(mock => mock.Dispose(), Times.Once);
+            };
+
+            It should_set_the_database_connection_to_null_on_the_disposed_ambient_database_context = () =>
+            {
+                _ambientDbContext2.Connection.ShouldBeNull();
+            };
+
+            It should_not_close_the_database_connection_on_the_active_ambient_database_context = () =>
+            {
+                _dbConnection1Mock.Verify(mock => mock.Close(), Times.Never);
+            };
+
+            It should_not_dispose_the_database_connection_on_the_active_ambient_database_context = () =>
+            {
+                _dbConnection1Mock.Verify(mock => mock.Dispose(), Times.Never);
+            };
+
+            It should_not_set_the_database_connection_to_null_on_the_active_ambient_database_context = () =>
+            {
+                _ambientDbContext1.Connection.ShouldNotBeNull();
+            };
+
+            It should_not_clear_contextual_storage = () =>
+            {
+                _storage.GetValue<object>(AmbientDbContextStorageKey.Key).ShouldNotBeNull();
+            };
+
+            It should_keep_active_ambient_context_in_the_storage = () =>
+            {
+                _storageHelper.GetStack().Count().ShouldEqual(1);
+            };
+
+            Cleanup test = () =>
+            {
+                _ambientDbContext1.Dispose();
+
+                AmbientDbContextStorageProvider.SetStorage(null);
+            };
+
+            private static IContextualStorage _storage;
+            private static Mock<IDbConnection> _dbConnection1Mock;
+            private static Mock<IDbConnection> _dbConnection2Mock;
+            private static AmbientDbContext _ambientDbContext1;
+            private static AmbientDbContext _ambientDbContext2;
             private static ContextualStorageHelper _storageHelper;
         }
 
