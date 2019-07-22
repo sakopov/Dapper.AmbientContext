@@ -157,7 +157,6 @@ namespace Dapper.AmbientContext.Storage
                 throw new AmbientDbContextException("Could not find ambient database context stack in the storage.");
             }
 
-            // Drop the existing key and recreate because the value is immutable
 #if NET451
             AmbientDbContextTable.Remove(crossReferenceKey.Value);
 #else
