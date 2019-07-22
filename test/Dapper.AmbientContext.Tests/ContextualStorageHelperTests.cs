@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using System.Data;
 using Dapper.AmbientContext.Storage;
 using Machine.Specifications;
@@ -41,6 +42,79 @@ namespace Dapper.AmbientContext.Tests
             };
 
             private static bool _expectedValue;
+            private static IContextualStorage _storage;
+            private static ContextualStorageHelper _contextualStorageHelper;
+        }
+
+        [Subject("Contextual Storage Helper")]
+        class When_clearing_contextual_storage
+        {
+            Establish context = () =>
+            {
+#if NET452
+                _storage = new LogicalCallContextStorage();
+#else
+                _storage = new AsyncLocalContextStorage();
+#endif
+
+                AmbientDbContextStorageProvider.SetStorage(_storage);
+
+                _contextualStorageHelper = new ContextualStorageHelper(AmbientDbContextStorageProvider.Storage);
+            };
+
+            Because of = () =>
+            {
+                _contextualStorageHelper.Clear();
+            };
+
+            It should_remove_ambient_database_context_storage_key = () =>
+            {
+                _storage.GetValue<string>(AmbientDbContextStorageKey.Key).ShouldBeNull();
+            };
+
+            Cleanup test = () =>
+            {
+                AmbientDbContextStorageProvider.SetStorage(null);
+            };
+
+            private static IContextualStorage _storage;
+            private static ContextualStorageHelper _contextualStorageHelper;
+        }
+
+        [Subject("Contextual Storage Helper")]
+        class When_calling_get_stack_on_empty_contextual_storage
+        {
+            Establish context = () =>
+            {
+#if NET452
+                _storage = new LogicalCallContextStorage();
+#else
+                _storage = new AsyncLocalContextStorage();
+#endif
+
+                AmbientDbContextStorageProvider.SetStorage(_storage);
+
+                _contextualStorageHelper = new ContextualStorageHelper(AmbientDbContextStorageProvider.Storage);
+
+                _contextualStorageHelper.Clear();
+            };
+
+            Because of = () =>
+            {
+                _actualException = Catch.Exception(() => _contextualStorageHelper.GetStack());
+            };
+
+            It should_throw_AmbientDbContextException = () =>
+            {
+                _actualException.ShouldBeOfExactType(typeof(AmbientDbContextException));
+            };
+
+            Cleanup test = () =>
+            {
+                AmbientDbContextStorageProvider.SetStorage(null);
+            };
+
+            private static Exception _actualException;
             private static IContextualStorage _storage;
             private static ContextualStorageHelper _contextualStorageHelper;
         }
