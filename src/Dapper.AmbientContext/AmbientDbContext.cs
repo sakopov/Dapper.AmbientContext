@@ -157,12 +157,10 @@ namespace Dapper.AmbientContext
                     Connection.Dispose();
                     Connection = null;
                 }
-
-                if (immutableStack.IsEmpty)
-                {
-                    _storageHelper.Clear();
-                }
             }
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
 
         /// <summary>

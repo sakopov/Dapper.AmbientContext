@@ -50,7 +50,7 @@ namespace Dapper.AmbientContext.Storage
         /// Garbage Collector from collecting and disposing <c>AmbientDbContext</c> instances.
         /// More on this at <see href="http://stackoverflow.com/a/18613811"/>
         /// </summary>
-        private static readonly ConditionalWeakTable<string, IImmutableStack<IAmbientDbContext>> AmbientDbContextTable = new ConditionalWeakTable<string, IImmutableStack<IAmbientDbContext>>();
+        private static readonly ConditionalWeakTable<ContextualStorageItem, IImmutableStack<IAmbientDbContext>> AmbientDbContextTable = new ConditionalWeakTable<ContextualStorageItem, IImmutableStack<IAmbientDbContext>>();
 
         /// <summary>
         /// The underlying contextual storage.
@@ -78,11 +78,8 @@ namespace Dapper.AmbientContext.Storage
         /// </returns>
         public IImmutableStack<IAmbientDbContext> GetStack()
         {
-#if NET451
             var crossReferenceKey = _storage.GetValue<ContextualStorageItem>(AmbientDbContextStorageKey.Key);
-#else
-            var crossReferenceKey = _storage.GetValue<string>(AmbientDbContextStorageKey.Key);
-#endif
+
             // This can only happen if something explicitly calls RemoveValue on the storage. Otherwise, there will 
             // always be a value in storage.
             if (crossReferenceKey == null)
@@ -90,13 +87,8 @@ namespace Dapper.AmbientContext.Storage
                 throw new AmbientDbContextException("Could not find ambient database context stack in the storage.");
             }
 
-            IImmutableStack<IAmbientDbContext> value;
+            AmbientDbContextTable.TryGetValue(crossReferenceKey, out var value);
 
-#if NET451
-            AmbientDbContextTable.TryGetValue(crossReferenceKey.Value, out value);
-#else
-            AmbientDbContextTable.TryGetValue(crossReferenceKey, out value);
-#endif
             return value;
         }
 
@@ -108,11 +100,8 @@ namespace Dapper.AmbientContext.Storage
         /// </param>
         public void SaveStack(IImmutableStack<IAmbientDbContext> stack)
         {
-#if NET451
             var crossReferenceKey = _storage.GetValue<ContextualStorageItem>(AmbientDbContextStorageKey.Key);
-#else
-            var crossReferenceKey = _storage.GetValue<string>(AmbientDbContextStorageKey.Key);
-#endif
+
             // This can only happen if something explicitly calls RemoveValue on the storage. Otherwise, there will 
             // always be a value in storage.
             if (crossReferenceKey == null)
@@ -120,50 +109,13 @@ namespace Dapper.AmbientContext.Storage
                 throw new AmbientDbContextException("Could not find ambient database context stack in the storage.");
             }
 
-            IImmutableStack<IAmbientDbContext> value;
-
             // Drop the existing key and recreate because the value is immutable
-#if NET451
-            if (AmbientDbContextTable.TryGetValue(crossReferenceKey.Value, out value))
-            {
-                AmbientDbContextTable.Remove(crossReferenceKey.Value);
-            }
-
-            AmbientDbContextTable.Add(crossReferenceKey.Value, stack);
-#else
-            if (AmbientDbContextTable.TryGetValue(crossReferenceKey, out value))
+            if (AmbientDbContextTable.TryGetValue(crossReferenceKey, out _))
             {
                 AmbientDbContextTable.Remove(crossReferenceKey);
             }
 
             AmbientDbContextTable.Add(crossReferenceKey, stack);
-#endif
-        }
-
-        /// <summary>
-        /// Removes all stacks from the storage.
-        /// </summary>
-        public void Clear()
-        {
-#if NET451
-            var crossReferenceKey = _storage.GetValue<ContextualStorageItem>(AmbientDbContextStorageKey.Key);
-#else
-            var crossReferenceKey = _storage.GetValue<string>(AmbientDbContextStorageKey.Key);
-#endif
-            // This can only happen if something explicitly calls RemoveValue on the storage. Otherwise, there will 
-            // always be a value in storage.
-            if (crossReferenceKey == null)
-            {
-                throw new AmbientDbContextException("Could not find ambient database context stack in the storage.");
-            }
-
-#if NET451
-            AmbientDbContextTable.Remove(crossReferenceKey.Value);
-#else
-            AmbientDbContextTable.Remove(crossReferenceKey);
-#endif
-
-            _storage.RemoveValue(AmbientDbContextStorageKey.Key);
         }
 
         /// <summary>
@@ -172,26 +124,15 @@ namespace Dapper.AmbientContext.Storage
         /// </summary>
         private void Initialize()
         {
-#if NET451
             var crossReferenceKey = _storage.GetValue<ContextualStorageItem>(AmbientDbContextStorageKey.Key);
-#else
-            var crossReferenceKey = _storage.GetValue<string>(AmbientDbContextStorageKey.Key);
-#endif
 
             if (crossReferenceKey == null)
             {
-#if NET451
                 crossReferenceKey = new ContextualStorageItem(Guid.NewGuid().ToString("N"));
-#else
-                crossReferenceKey = Guid.NewGuid().ToString("N");
-#endif
+
                 _storage.SetValue(AmbientDbContextStorageKey.Key, crossReferenceKey);
 
-#if NET451
-                AmbientDbContextTable.Add(crossReferenceKey.Value, ImmutableStack.Create<IAmbientDbContext>());
-#else
                 AmbientDbContextTable.Add(crossReferenceKey, ImmutableStack.Create<IAmbientDbContext>());
-#endif
             }
         }
 
@@ -217,6 +158,16 @@ namespace Dapper.AmbientContext.Storage
             /// <summary>
             /// Gets the stored item value.
             /// </summary>
+            public string Value { get; }
+        }
+#else
+        internal class ContextualStorageItem
+        {
+            public ContextualStorageItem(string value)
+            {
+                Value = value;
+            }
+
             public string Value { get; }
         }
 #endif
