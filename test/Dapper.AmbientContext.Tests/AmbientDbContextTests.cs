@@ -231,9 +231,11 @@ namespace Dapper.AmbientContext.Tests
                 _ambientDbContext.Connection.ShouldBeNull();
             };
 
-            It should_clear_contextual_storage = () =>
+            It should_pop_ambient_database_context_from_stack = () =>
             {
-                _storage.GetValue<object>(AmbientDbContextStorageKey.Key).ShouldBeNull();
+                var stack = _storageHelper.GetStack();
+
+                stack.IsEmpty.ShouldEqual(true);
             };
 
             Cleanup test = () =>
@@ -306,9 +308,11 @@ namespace Dapper.AmbientContext.Tests
                 _ambientDbContext.Connection.ShouldBeNull();
             };
 
-            It should_clear_contextual_storage = () =>
+            It should_pop_ambient_database_context_from_stack = () =>
             {
-                _storage.GetValue<object>(AmbientDbContextStorageKey.Key).ShouldBeNull();
+                var stack = _storageHelper.GetStack();
+
+                stack.IsEmpty.ShouldEqual(true);
             };
 
             Cleanup test = () =>
@@ -385,9 +389,11 @@ namespace Dapper.AmbientContext.Tests
                 _parentAmbientDbContext1.Connection.ShouldBeNull();
             };
 
-            It should_clear_contextual_storage = () =>
+            It should_pop_ambient_database_context_from_stack = () =>
             {
-                _storage.GetValue<object>(AmbientDbContextStorageKey.Key).ShouldBeNull();
+                var stack = _storageHelper.GetStack();
+
+                stack.IsEmpty.ShouldEqual(true);
             };
 
             Cleanup test = () =>
@@ -466,9 +472,11 @@ namespace Dapper.AmbientContext.Tests
                 _ambientDbContext1.Connection.ShouldBeNull();
             };
 
-            It should_clear_contextual_storage = () =>
+            It should_pop_ambient_database_context_from_stack = () =>
             {
-                _storage.GetValue<object>(AmbientDbContextStorageKey.Key).ShouldBeNull();
+                var stack = _storageHelper.GetStack();
+
+                stack.IsEmpty.ShouldEqual(true);
             };
 
             Cleanup test = () =>
