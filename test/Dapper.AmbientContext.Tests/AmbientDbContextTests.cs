@@ -364,8 +364,10 @@ namespace Dapper.AmbientContext.Tests
                 _childDbConnection2Mock.Verify(mock => mock.Close(), Times.Never);
             };
 
-            It should_not_dispose_the_database_connection_on_the_first_disposed_ambient_database_context = () =>
+            It should_not_create_orphaned_connection_when_joining_parent = () =>
             {
+                // The factory checks for a parent context before creating a connection,
+                // preventing the connection leak by never allocating the connection in the first place
                 _childDbConnection2Mock.Verify(mock => mock.Dispose(), Times.Never);
             };
 
@@ -537,8 +539,10 @@ namespace Dapper.AmbientContext.Tests
                 _childDbConnection2Mock.Verify(mock => mock.Close(), Times.Never);
             };
 
-            It should_not_dispose_the_database_connection_on_the_first_disposed_ambient_database_context = () =>
+            It should_not_create_orphaned_connection_when_joining_parent = () =>
             {
+                // The factory checks for a parent context before creating a connection,
+                // preventing the connection leak by never allocating the connection in the first place
                 _childDbConnection2Mock.Verify(mock => mock.Dispose(), Times.Never);
             };
 

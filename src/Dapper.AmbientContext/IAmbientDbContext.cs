@@ -42,10 +42,10 @@ namespace Dapper.AmbientContext
         IDbConnection Connection { get; }
 
         /// <summary>
-        /// Gets or sets the ambient database context transaction. If inheriting from a parent
+        /// Gets the ambient database context transaction. If inheriting from a parent
         /// ambient database context, this property will be assigned to parent's transaction.
         /// </summary>
-        IDbTransaction Transaction { get; set; }
+        IDbTransaction Transaction { get; }
 
         /// <summary>
         /// Gets a value indicating whether to suppress the database transaction.

@@ -36,14 +36,16 @@ namespace Dapper.AmbientContext.Storage
     /// </summary>
     /// <remarks>
     /// Note, it's not possible to store non-serializable items in the Logical CallContext. This prevents us from storing
-    /// immutable stack of ambient database contexts. Instead, the Logical CallContext only stores a cross-reference key to the 
+    /// immutable stack of ambient database contexts. Instead, the Logical CallContext only stores a cross-reference key to the
     /// immutable stack stored in <see cref="System.Runtime.CompilerServices.ConditionalWeakTable{String, IImmutableStack{AmbientDbContext}}"/>.
+    /// For modern .NET targets (netstandard1.3+), AsyncLocal has no serialization constraint, so the stack is stored directly.
     /// </remarks>
     internal class ContextualStorageHelper
     {
+#if NET451
         /// <summary>
         /// Using a <c>ConditionalWeakTable</c> in order to prevent leaking <c>AmbientDbContext</c> instances if they're not
-        /// disposed of properly. Using something like <c>ConcurrentDictionary</c> would hold a reference to the 
+        /// disposed of properly. Using something like <c>ConcurrentDictionary</c> would hold a reference to the
         /// <c>AmbientDbContext</c> and prevent Garbage Collector from collecting it, subsequently causing a memory
         /// leak. <c>ConditionalWeakTable</c> holds a "weak" reference to the <c>AmbientDbContext</c> instances. In other
         /// words an instance is referenced for as long as it exists in memory. This behavior does not obstruct
@@ -51,6 +53,7 @@ namespace Dapper.AmbientContext.Storage
         /// More on this at <see href="http://stackoverflow.com/a/18613811"/>
         /// </summary>
         private static readonly ConditionalWeakTable<ContextualStorageItem, IImmutableStack<IAmbientDbContext>> AmbientDbContextTable = new ConditionalWeakTable<ContextualStorageItem, IImmutableStack<IAmbientDbContext>>();
+#endif
 
         /// <summary>
         /// The underlying contextual storage.
@@ -78,9 +81,10 @@ namespace Dapper.AmbientContext.Storage
         /// </returns>
         public IImmutableStack<IAmbientDbContext> GetStack()
         {
+#if NET451
             var crossReferenceKey = _storage.GetValue<ContextualStorageItem>(AmbientDbContextStorageKey.Key);
 
-            // This can only happen if something explicitly calls RemoveValue on the storage. Otherwise, there will 
+            // This can only happen if something explicitly calls RemoveValue on the storage. Otherwise, there will
             // always be a value in storage.
             if (crossReferenceKey == null)
             {
@@ -90,6 +94,10 @@ namespace Dapper.AmbientContext.Storage
             AmbientDbContextTable.TryGetValue(crossReferenceKey, out var value);
 
             return value;
+#else
+            // For modern .NET, store the stack directly in AsyncLocal without ConditionalWeakTable indirection
+            return _storage.GetValue<IImmutableStack<IAmbientDbContext>>(AmbientDbContextStorageKey.Key);
+#endif
         }
 
         /// <summary>
@@ -100,9 +108,10 @@ namespace Dapper.AmbientContext.Storage
         /// </param>
         public void SaveStack(IImmutableStack<IAmbientDbContext> stack)
         {
+#if NET451
             var crossReferenceKey = _storage.GetValue<ContextualStorageItem>(AmbientDbContextStorageKey.Key);
 
-            // This can only happen if something explicitly calls RemoveValue on the storage. Otherwise, there will 
+            // This can only happen if something explicitly calls RemoveValue on the storage. Otherwise, there will
             // always be a value in storage.
             if (crossReferenceKey == null)
             {
@@ -116,6 +125,10 @@ namespace Dapper.AmbientContext.Storage
             }
 
             AmbientDbContextTable.Add(crossReferenceKey, stack);
+#else
+            // For modern .NET, store the stack directly in AsyncLocal without ConditionalWeakTable indirection
+            _storage.SetValue(AmbientDbContextStorageKey.Key, stack);
+#endif
         }
 
         /// <summary>
@@ -124,6 +137,7 @@ namespace Dapper.AmbientContext.Storage
         /// </summary>
         private void Initialize()
         {
+#if NET451
             var crossReferenceKey = _storage.GetValue<ContextualStorageItem>(AmbientDbContextStorageKey.Key);
 
             if (crossReferenceKey == null)
@@ -134,6 +148,15 @@ namespace Dapper.AmbientContext.Storage
 
                 AmbientDbContextTable.Add(crossReferenceKey, ImmutableStack.Create<IAmbientDbContext>());
             }
+#else
+            // For modern .NET, store the stack directly in AsyncLocal
+            var stack = _storage.GetValue<IImmutableStack<IAmbientDbContext>>(AmbientDbContextStorageKey.Key);
+
+            if (stack == null)
+            {
+                _storage.SetValue(AmbientDbContextStorageKey.Key, ImmutableStack.Create<IAmbientDbContext>());
+            }
+#endif
         }
 
 #if NET451

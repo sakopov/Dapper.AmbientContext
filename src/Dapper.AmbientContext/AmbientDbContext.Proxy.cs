@@ -1340,35 +1340,43 @@ namespace Dapper.AmbientContext
         /// </summary>
         internal void PrepareConnectionAndTransaction()
         {
-            // The parent itself with a closed connection
-            if (Parent == null && Connection.State != ConnectionState.Open)
+            _initializationLock.Wait();
+            try
             {
-                Connection.Open();
-
-                if (!Suppress)
+                // The parent itself with a closed connection
+                if (Parent == null && Connection.State != ConnectionState.Open)
                 {
-                    Transaction = Connection.BeginTransaction(IsolationLevel);
+                    Connection.Open();
+
+                    if (!Suppress)
+                    {
+                        Transaction = Connection.BeginTransaction(IsolationLevel);
+                    }
+                }
+
+                // Has a parent but their connection was never opened
+                if (Parent != null && Parent.Connection.State == ConnectionState.Closed)
+                {
+                    Parent.Connection.Open();
+
+                    if (!Parent.Suppress)
+                    {
+                        Parent.Transaction = Parent.Connection.BeginTransaction(Parent.IsolationLevel);
+                    }
+                }
+
+                // Opened the parent connection, now inherit their transaction
+                if (Parent != null && Parent.Connection.State == ConnectionState.Open)
+                {
+                    if (Parent.Transaction != null && Transaction == null)
+                    {
+                        Transaction = Parent.Transaction;
+                    }
                 }
             }
-
-            // Has a parent but their connection was never opened
-            if (Parent != null && Parent.Connection.State == ConnectionState.Closed)
+            finally
             {
-                Parent.Connection.Open();
-
-                if (!Parent.Suppress)
-                {
-                    Parent.Transaction = Parent.Connection.BeginTransaction(Parent.IsolationLevel);
-                }
-            }
-
-            // Opened the parent connection, now inherit their transaction
-            if (Parent != null && Parent.Connection.State == ConnectionState.Open)
-            {
-                if (Parent.Transaction != null && Transaction == null)
-                {
-                    Transaction = Parent.Transaction;
-                }
+                _initializationLock.Release();
             }
         }
     }

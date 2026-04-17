@@ -1719,34 +1719,42 @@ namespace Dapper.AmbientContext
         /// </returns>
         private async Task PrepareConnectionAndTransactionAsync(CancellationToken cancellationToken)
         {
-            if (Parent == null && Connection.State != ConnectionState.Open)
+            await _initializationLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
             {
-                await((DbConnection)Connection).OpenAsync(cancellationToken).ConfigureAwait(false);
-
-                if (!Suppress)
+                if (Parent == null && Connection.State != ConnectionState.Open)
                 {
-                    Transaction = Connection.BeginTransaction(IsolationLevel);
+                    await((DbConnection)Connection).OpenAsync(cancellationToken).ConfigureAwait(false);
+
+                    if (!Suppress)
+                    {
+                        Transaction = Connection.BeginTransaction(IsolationLevel);
+                    }
+                }
+
+                // Has a parent but their connection was never opened
+                if (Parent != null && Parent.Connection.State == ConnectionState.Closed)
+                {
+                    await((DbConnection)Parent.Connection).OpenAsync(cancellationToken).ConfigureAwait(false);
+
+                    if (!Parent.Suppress)
+                    {
+                        Parent.Transaction = Parent.Connection.BeginTransaction(Parent.IsolationLevel);
+                    }
+                }
+
+                // Opened the parent transaction, now inherit their transaction
+                if (Parent != null && Parent.Connection.State == ConnectionState.Open)
+                {
+                    if (Parent.Transaction != null && Transaction == null)
+                    {
+                        Transaction = Parent.Transaction;
+                    }
                 }
             }
-
-            // Has a parent but their connection was never opened
-            if (Parent != null && Parent.Connection.State == ConnectionState.Closed)
+            finally
             {
-                await((DbConnection)Parent.Connection).OpenAsync(cancellationToken).ConfigureAwait(false);
-
-                if (!Parent.Suppress)
-                {
-                    Parent.Transaction = Parent.Connection.BeginTransaction(Parent.IsolationLevel);
-                }
-            }
-
-            // Opened the parent transaction, now inherit their transaction
-            if (Parent != null && Parent.Connection.State == ConnectionState.Open)
-            {
-                if (Parent.Transaction != null && Transaction == null)
-                {
-                    Transaction = Parent.Transaction;
-                }
+                _initializationLock.Release();
             }
         }
     }

@@ -46,6 +46,11 @@ namespace Dapper.AmbientContext
         private ContextualStorageHelper _storageHelper;
 
         /// <summary>
+        /// The semaphore used to synchronize connection and transaction initialization.
+        /// </summary>
+        private readonly System.Threading.SemaphoreSlim _initializationLock = new System.Threading.SemaphoreSlim(1, 1);
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="AmbientDbContext"/> class.
         /// </summary>
         /// <param name="connection">
@@ -74,7 +79,8 @@ namespace Dapper.AmbientContext
                 {
                     var parent = immutableStack.Peek();
 
-                    Parent = parent;
+                    Parent = (AmbientDbContext)parent;
+
                     Connection = parent.Connection;
                     Transaction = parent.Transaction;
                     Suppress = parent.Suppress;
@@ -94,10 +100,10 @@ namespace Dapper.AmbientContext
         public IDbConnection Connection { get; private set; }
 
         /// <summary>
-        /// Gets or sets the ambient database context transaction. If inheriting from a parent
+        /// Gets the ambient database context transaction. If inheriting from a parent
         /// ambient database context, this property will be assigned to parent's transaction.
         /// </summary>
-        public IDbTransaction Transaction { get; set; }
+        public IDbTransaction Transaction { get; internal set; }
 
         /// <summary>
         /// Gets a value indicating whether to suppress the database transaction.
@@ -111,10 +117,10 @@ namespace Dapper.AmbientContext
 
         /// <summary>
         /// Gets the parent ambient database context. This property will only be set
-        /// if an ambient database context joins an already existing context and inherits its 
+        /// if an ambient database context joins an already existing context and inherits its
         /// state.
         /// </summary>
-        internal IAmbientDbContext Parent { get; }
+        internal AmbientDbContext Parent { get; }
 
         /// <summary>
         /// Disposes ambient database context.
@@ -159,8 +165,7 @@ namespace Dapper.AmbientContext
                 }
             }
 
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
+            _initializationLock?.Dispose();
         }
 
         /// <summary>

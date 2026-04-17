@@ -28,6 +28,7 @@
 namespace Dapper.AmbientContext
 {
     using System.Data;
+    using Storage;
 
     /// <summary>
     /// Represents the type that is responsible for creating ambient database context.
@@ -73,16 +74,38 @@ namespace Dapper.AmbientContext
         /// </exception>
         public IAmbientDbContext Create(bool join = true, bool suppress = false, IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
         {
-            var connection = _connectionFactory.Create();
+            IDbConnection connection = null;
 
-            if (connection.State != ConnectionState.Closed)
+            // Only create a connection if we're not joining an existing context
+            // or if there's no parent context to join
+            if (!join || !HasParentContext())
             {
-                throw new AmbientDbContextException("The database connection factory returned a database connection in a non-closed state. This behavior is not allowed as the ambient database context will maintain database connection state as required.");
+                connection = _connectionFactory.Create();
+
+                if (connection.State != ConnectionState.Closed)
+                {
+                    throw new AmbientDbContextException("The database connection factory returned a database connection in a non-closed state. This behavior is not allowed as the ambient database context will maintain database connection state as required.");
+                }
             }
 
             var ambientDbContext = new AmbientDbContext(connection, join, suppress, isolationLevel);
 
             return ambientDbContext;
+        }
+
+        /// <summary>
+        /// Checks if a parent ambient database context exists on the stack.
+        /// </summary>
+        /// <returns>
+        /// True if a parent context exists; otherwise, false.
+        /// </returns>
+        private bool HasParentContext()
+        {
+            var storage = AmbientDbContextStorageProvider.Storage;
+            var storageHelper = new ContextualStorageHelper(storage);
+            var stack = storageHelper.GetStack();
+
+            return stack != null && !stack.IsEmpty;
         }
     }
 }
