@@ -1,4 +1,4 @@
-﻿#if NETSTANDARD1_3 || NETSTANDARD2_0
+﻿#if NETSTANDARD2_0
 // --------------------------------------------------------------------------------------------------------------------
 // <copyright file="AsyncLocalContextStorage.cs">
 //   Copyright (c) 2016-2026 Sergey Akopov
