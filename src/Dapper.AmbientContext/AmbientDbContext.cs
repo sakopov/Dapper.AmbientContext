@@ -41,7 +41,7 @@ namespace Dapper.AmbientContext
     /// Represents the type that holds details about the active database context and
     /// manages its lifetime.
     /// </summary>
-    public sealed partial class AmbientDbContext : IAmbientDbContext
+    public sealed class AmbientDbContext : IAmbientDbContext
     {
         /// <summary>
         /// The storage helper.
