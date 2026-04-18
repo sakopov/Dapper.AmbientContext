@@ -345,33 +345,5 @@ namespace Dapper.AmbientContext
 
             return _storageHelper.GetStack();
         }
-
-        /// <summary>
-        /// Injects current database transaction into the specified command definition.
-        /// </summary>
-        /// <param name="commandDefinition">
-        /// The command definition to inject the current database transaction into.
-        /// </param>
-        /// <returns>
-        /// The command definition with the injected database transaction.
-        /// </returns>
-        private CommandDefinition InjectTransaction(CommandDefinition commandDefinition)
-        {
-            if (Transaction == null)
-            {
-                return commandDefinition;
-            }
-
-            var command = new CommandDefinition(
-                commandDefinition.CommandText,
-                commandDefinition.Parameters,
-                Transaction,
-                commandDefinition.CommandTimeout,
-                commandDefinition.CommandType,
-                commandDefinition.Flags,
-                commandDefinition.CancellationToken);
-
-            return command;
-        }
     }
 }
