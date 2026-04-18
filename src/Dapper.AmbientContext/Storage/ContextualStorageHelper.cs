@@ -183,16 +183,6 @@ namespace Dapper.AmbientContext.Storage
             /// </summary>
             public string Value { get; }
         }
-#else
-        internal class ContextualStorageItem
-        {
-            public ContextualStorageItem(string value)
-            {
-                Value = value;
-            }
-
-            public string Value { get; }
-        }
 #endif
     }
 }
