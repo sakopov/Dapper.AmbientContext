@@ -37,11 +37,4 @@ jobs:
       run: dotnet build --no-restore --configuration Release
 
     - name: Test ${{ matrix.framework }}
-      run: dotnet test test/Dapper.AmbientContext.Tests/Dapper.AmbientContext.Tests.csproj --no-build --configuration Release --framework ${{ matrix.framework }} --logger "trx;LogFileName=test-results-${{ matrix.framework }}.trx"
-
-    - name: Publish Test Results
-      uses: EnricoMi/publish-unit-test-result-action@v2
-      if: always()
-      with:
-        files: |
-          **/test-results-*.trx
+      run: dotnet test test/Dapper.AmbientContext.Tests/Dapper.AmbientContext.Tests.csproj --no-build --configuration Release --framework ${{ matrix.framework }}
