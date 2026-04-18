@@ -1,0 +1,84 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+
+jobs:
+  release:
+    runs-on: windows-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 'lts/*'
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+          8.0.x
+
+    - name: Install semantic-release
+      run: |
+        npm install -g semantic-release@23 `
+          @semantic-release/changelog@6 `
+          @semantic-release/git@10 `
+          @semantic-release/github@10 `
+          @semantic-release/exec@6 `
+          conventional-changelog-conventionalcommits@7
+
+    - name: Semantic Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: npx semantic-release
+
+    - name: Get Release Version
+      id: get_version
+      shell: pwsh
+      run: |
+        $version = git describe --tags --abbrev=0 2>$null
+        if ($version) {
+          $version = $version.TrimStart('v')
+          Write-Output "version=$version" >> $env:GITHUB_OUTPUT
+          Write-Output "Released version: $version"
+        } else {
+          Write-Output "No release created"
+          Write-Output "version=" >> $env:GITHUB_OUTPUT
+        }
+
+    - name: Restore dependencies
+      if: steps.get_version.outputs.version != ''
+      run: dotnet restore
+
+    - name: Build
+      if: steps.get_version.outputs.version != ''
+      run: dotnet build --no-restore --configuration Release /p:Version=${{ steps.get_version.outputs.version }}
+
+    - name: Test .NET Framework 4.6.2
+      if: steps.get_version.outputs.version != ''
+      run: dotnet test test/Dapper.AmbientContext.Tests/Dapper.AmbientContext.Tests.csproj --no-build --configuration Release --framework net462
+
+    - name: Test .NET 8.0
+      if: steps.get_version.outputs.version != ''
+      run: dotnet test test/Dapper.AmbientContext.Tests/Dapper.AmbientContext.Tests.csproj --no-build --configuration Release --framework net8.0
+
+    - name: Pack NuGet
+      if: steps.get_version.outputs.version != ''
+      run: dotnet pack src/Dapper.AmbientContext/Dapper.AmbientContext.csproj --no-build --configuration Release --output ./artifacts /p:PackageVersion=${{ steps.get_version.outputs.version }}
+
+    - name: Push to NuGet
+      if: steps.get_version.outputs.version != ''
+      run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
