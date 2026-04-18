@@ -42,7 +42,7 @@ namespace Dapper.AmbientContext.Storage
     /// </remarks>
     internal class ContextualStorageHelper
     {
-#if NET451
+#if NETFRAMEWORK
         /// <summary>
         /// Using a <c>ConditionalWeakTable</c> in order to prevent leaking <c>AmbientDbContext</c> instances if they're not
         /// disposed of properly. Using something like <c>ConcurrentDictionary</c> would hold a reference to the
@@ -81,7 +81,7 @@ namespace Dapper.AmbientContext.Storage
         /// </returns>
         public IImmutableStack<IAmbientDbContext> GetStack()
         {
-#if NET451
+#if NETFRAMEWORK
             var crossReferenceKey = _storage.GetValue<ContextualStorageItem>(AmbientDbContextStorageKey.Key);
 
             // This can only happen if something explicitly calls RemoveValue on the storage. Otherwise, there will
@@ -108,7 +108,7 @@ namespace Dapper.AmbientContext.Storage
         /// </param>
         public void SaveStack(IImmutableStack<IAmbientDbContext> stack)
         {
-#if NET451
+#if NETFRAMEWORK
             var crossReferenceKey = _storage.GetValue<ContextualStorageItem>(AmbientDbContextStorageKey.Key);
 
             // This can only happen if something explicitly calls RemoveValue on the storage. Otherwise, there will
@@ -137,7 +137,7 @@ namespace Dapper.AmbientContext.Storage
         /// </summary>
         private void Initialize()
         {
-#if NET451
+#if NETFRAMEWORK
             var crossReferenceKey = _storage.GetValue<ContextualStorageItem>(AmbientDbContextStorageKey.Key);
 
             if (crossReferenceKey == null)
@@ -159,7 +159,7 @@ namespace Dapper.AmbientContext.Storage
 #endif
         }
 
-#if NET451
+#if NETFRAMEWORK
         /// <summary>
         /// Wraps values in storage to enable access across AppDomains. While all storage
         /// mechanisms will use the same approach, it is only required for the Logical 

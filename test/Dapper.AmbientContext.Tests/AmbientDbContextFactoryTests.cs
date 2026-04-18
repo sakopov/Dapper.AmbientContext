@@ -14,7 +14,7 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
-#if NET452
+#if NETFRAMEWORK
                 AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
 #else
                 AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());
@@ -56,7 +56,7 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
-#if NET452
+#if NETFRAMEWORK
                 AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
 #else
                 AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());

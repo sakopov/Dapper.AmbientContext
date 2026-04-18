@@ -5,7 +5,7 @@
     <Copyright>Copyright Sergey Akopov</Copyright>
     <VersionPrefix>1.8.1</VersionPrefix>
     <Authors>Sergey Akopov</Authors>
-    <TargetFrameworks>net451;netstandard1.3;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net462;netstandard2.0</TargetFrameworks>
     <AssemblyName>Dapper.AmbientContext</AssemblyName>
     <PackageId>Dapper.AmbientContext</PackageId>
     <PackageTags>dapper;ambient;context</PackageTags>
@@ -21,12 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="1.60.6" />
-    <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' OR '$(TargetFramework)' == 'netstandard1.3' ">
-    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+    <PackageReference Include="Dapper" Version="2.0.151" />
+    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
   </ItemGroup>
 
 </Project>
