@@ -63,10 +63,13 @@ public class SqlConnectionFactory : IDbConnectionFactory
 ### 2. Register services in your DI container
 
 ```csharp
-// Configure services
-services.AddSingleton<IDbConnectionFactory>(new SqlConnectionFactory(connectionString));
-services.AddSingleton<IAmbientDbContextLocator, AmbientDbContextLocator>();
-services.AddTransient<IAmbientDbContextFactory, AmbientDbContextFactory>();
+using Dapper.AmbientContext.Extensions;
+
+// With connection factory instance
+services.AddDapperAmbientContext(new SqlConnectionFactory(connectionString));
+
+// OR with connection factory type
+services.AddDapperAmbientContext<SqlConnectionFactory>(connectionString);
 
 // Register your repositories
 services.AddTransient<IUserRepository, UserRepository>();
