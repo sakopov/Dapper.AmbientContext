@@ -236,26 +236,41 @@ namespace Dapper.AmbientContext
 
             _storageHelper.SaveStack(immutableStack);
 
-            if (Parent == null)
+            try
             {
-                if (Transaction != null)
+                if (Parent == null)
                 {
-                    Commit();
-                }
-
-                if (Connection != null)
-                {
-                    if (Connection.State == ConnectionState.Open)
+                    try
                     {
-                        Connection.Close();
+                        if (Transaction != null)
+                        {
+                            Commit();
+                        }
                     }
-
-                    Connection.Dispose();
-                    Connection = null;
+                    finally
+                    {
+                        if (Connection != null)
+                        {
+                            try
+                            {
+                                if (Connection.State == ConnectionState.Open)
+                                {
+                                    Connection.Close();
+                                }
+                            }
+                            finally
+                            {
+                                Connection.Dispose();
+                                Connection = null;
+                            }
+                        }
+                    }
                 }
             }
-
-            _initializationLock?.Dispose();
+            finally
+            {
+                _initializationLock?.Dispose();
+            }
         }
 
         /// <summary>
