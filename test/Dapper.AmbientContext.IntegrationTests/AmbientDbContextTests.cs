@@ -1,12 +1,12 @@
 using System.Data;
 using System.Threading.Tasks;
-using Dapper;
+using Dapper.AmbientContext.IntegrationTests.Fixtures;
 using Shouldly;
 using Xunit;
 
 namespace Dapper.AmbientContext.IntegrationTests;
 
-[Collection("Postgres")]
+[Collection(PostgresCollection.Name)]
 public class AmbientDbContextTests
 {
     private readonly PostgresFixture _fixture;
@@ -291,9 +291,4 @@ public class AmbientDbContextTests
 
         await _fixture.CleanupAsync();
     }
-}
-
-[CollectionDefinition("Postgres")]
-public class PostgresCollection : ICollectionFixture<PostgresFixture>
-{
 }

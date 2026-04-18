@@ -5,7 +5,7 @@ using Npgsql;
 using Testcontainers.PostgreSql;
 using Xunit;
 
-namespace Dapper.AmbientContext.IntegrationTests;
+namespace Dapper.AmbientContext.IntegrationTests.Fixtures;
 
 public class PostgresFixture : IAsyncLifetime
 {
