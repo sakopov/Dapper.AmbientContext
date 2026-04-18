@@ -212,10 +212,6 @@ The ambient context pattern uses `AsyncLocal` (.NET Core/5+) or `LogicalCallCont
 4. All data access components get the current context via `IAmbientDbContextLocator`
 5. On dispose, the context is popped and transaction is committed/rolled back
 
-## Documentation
-
-For more information, see the [wiki](https://github.com/sakopov/Dapper.AmbientContext/wiki).
-
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
