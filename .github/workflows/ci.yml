@@ -61,15 +61,11 @@ jobs:
 
     - name: Restore dependencies
       if: steps.get_version.outputs.version != ''
-      run: |
-        dotnet restore src/Dapper.AmbientContext/Dapper.AmbientContext.csproj
-        dotnet restore test/Dapper.AmbientContext.Tests/Dapper.AmbientContext.Tests.csproj
+      run: dotnet restore
 
     - name: Build
       if: steps.get_version.outputs.version != ''
-      run: |
-        dotnet build src/Dapper.AmbientContext/Dapper.AmbientContext.csproj --no-restore --configuration Release /p:Version=${{ steps.get_version.outputs.version }}
-        dotnet build test/Dapper.AmbientContext.Tests/Dapper.AmbientContext.Tests.csproj --no-restore --configuration Release
+      run: dotnet build --no-restore --configuration Release /p:Version=${{ steps.get_version.outputs.version }}
 
     - name: Test .NET Framework 4.6.2
       if: steps.get_version.outputs.version != ''
