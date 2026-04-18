@@ -38,8 +38,8 @@ jobs:
     - name: Build
       run: dotnet build --no-restore --configuration Release
 
-    - name: Test ${{ matrix.framework }} on ${{ matrix.os }}
-      run: dotnet test test/Dapper.AmbientContext.Tests/Dapper.AmbientContext.Tests.csproj --no-build --configuration Release --framework ${{ matrix.framework }}
+    - name: Run Unit Tests ${{ matrix.framework }} on ${{ matrix.os }}
+      run: dotnet test test/Dapper.AmbientContext.UnitTests/Dapper.AmbientContext.UnitTests.csproj --no-build --configuration Release --framework ${{ matrix.framework }}
 
     - name: Run Integration Tests
       if: matrix.os == 'ubuntu-latest' && matrix.framework == 'net8.0'
