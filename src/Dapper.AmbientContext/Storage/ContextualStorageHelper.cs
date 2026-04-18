@@ -38,7 +38,7 @@ namespace Dapper.AmbientContext.Storage
     /// Note, it's not possible to store non-serializable items in the Logical CallContext. This prevents us from storing
     /// immutable stack of ambient database contexts. Instead, the Logical CallContext only stores a cross-reference key to the
     /// immutable stack stored in <see cref="System.Runtime.CompilerServices.ConditionalWeakTable{String, IImmutableStack{AmbientDbContext}}"/>.
-    /// For modern .NET targets (netstandard1.3+), AsyncLocal has no serialization constraint, so the stack is stored directly.
+    /// For modern .NET targets (netstandard2.0+), AsyncLocal has no serialization constraint, so the stack is stored directly.
     /// </remarks>
     internal class ContextualStorageHelper
     {
@@ -84,7 +84,7 @@ namespace Dapper.AmbientContext.Storage
 #if NETFRAMEWORK
             var crossReferenceKey = _storage.GetValue<ContextualStorageItem>(AmbientDbContextStorageKey.Key);
 
-            // This can only happen if something explicitly calls RemoveValue on the storage. Otherwise, there will
+            // This can only happen if the storage is corrupted. Otherwise, there will
             // always be a value in storage.
             if (crossReferenceKey == null)
             {
@@ -111,7 +111,7 @@ namespace Dapper.AmbientContext.Storage
 #if NETFRAMEWORK
             var crossReferenceKey = _storage.GetValue<ContextualStorageItem>(AmbientDbContextStorageKey.Key);
 
-            // This can only happen if something explicitly calls RemoveValue on the storage. Otherwise, there will
+            // This can only happen if the storage is corrupted. Otherwise, there will
             // always be a value in storage.
             if (crossReferenceKey == null)
             {
