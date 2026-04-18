@@ -997,7 +997,7 @@ namespace Dapper.AmbientContext.Tests
             private static ContextualStorageHelper _storageHelper;
         }
 
-        [Subject("Ambient DB Context Connection Preperation")]
+        [Subject("Ambient DB Context Connection Preparation")]
         class When_the_joined_parent_ambient_database_context_requests_connection_first
         {
             Establish context = () =>
@@ -1059,7 +1059,7 @@ namespace Dapper.AmbientContext.Tests
             private static ContextualStorageHelper _storageHelper;
         }
 
-        [Subject("Ambient DB Context Connection Preperation")]
+        [Subject("Ambient DB Context Connection Preparation")]
         class When_the_joined_child_ambient_database_context_requests_connection_first
         {
             Establish context = () =>
@@ -1309,7 +1309,7 @@ namespace Dapper.AmbientContext.Tests
             private static ContextualStorageHelper _storageHelper;
         }
 
-        [Subject("Ambient DB Context Commit")]
+        [Subject("Ambient DB Context Rollback")]
         class When_rolling_back_joined_parent_ambient_database_context
         {
             Establish context = () =>
