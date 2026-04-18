@@ -31,6 +31,9 @@ namespace Dapper.AmbientContext
     using System;
     using System.Collections.Immutable;
     using System.Data;
+    using System.Data.Common;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     using Storage;
 
@@ -38,7 +41,7 @@ namespace Dapper.AmbientContext
     /// Represents the type that holds details about the active database context and
     /// manages its lifetime.
     /// </summary>
-    public sealed partial class AmbientDbContext : IAmbientDbContext, IAmbientDbContextQueryProxy
+    public sealed partial class AmbientDbContext : IAmbientDbContext
     {
         /// <summary>
         /// The storage helper.
@@ -121,6 +124,105 @@ namespace Dapper.AmbientContext
         /// state.
         /// </summary>
         internal AmbientDbContext Parent { get; }
+
+        /// <summary>
+        /// Prepares the database context by ensuring the connection is open and transaction
+        /// is started (if not suppressed).
+        /// </summary>
+        /// <returns>A prepared context containing the connection and transaction.</returns>
+        public PreparedContext Prepare()
+        {
+            _initializationLock.Wait();
+            try
+            {
+                // The parent itself with a closed connection
+                if (Parent == null && Connection.State != ConnectionState.Open)
+                {
+                    Connection.Open();
+
+                    if (!Suppress)
+                    {
+                        Transaction = Connection.BeginTransaction(IsolationLevel);
+                    }
+                }
+
+                // Has a parent but their connection was never opened
+                if (Parent != null && Parent.Connection.State == ConnectionState.Closed)
+                {
+                    Parent.Connection.Open();
+
+                    if (!Parent.Suppress)
+                    {
+                        Parent.Transaction = Parent.Connection.BeginTransaction(Parent.IsolationLevel);
+                    }
+                }
+
+                // Opened the parent connection, now inherit their transaction
+                if (Parent != null && Parent.Connection.State == ConnectionState.Open)
+                {
+                    if (Parent.Transaction != null && Transaction == null)
+                    {
+                        Transaction = Parent.Transaction;
+                    }
+                }
+
+                return new PreparedContext(Connection, Transaction);
+            }
+            finally
+            {
+                _initializationLock.Release();
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously prepares the database context by ensuring the connection is open
+        /// and transaction is started (if not suppressed).
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task representing the asynchronous operation, containing the prepared context.</returns>
+        public async Task<PreparedContext> PrepareAsync(CancellationToken cancellationToken = default)
+        {
+            await _initializationLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                // The parent itself with a closed connection
+                if (Parent == null && Connection.State != ConnectionState.Open)
+                {
+                    await ((DbConnection)Connection).OpenAsync(cancellationToken).ConfigureAwait(false);
+
+                    if (!Suppress)
+                    {
+                        Transaction = Connection.BeginTransaction(IsolationLevel);
+                    }
+                }
+
+                // Has a parent but their connection was never opened
+                if (Parent != null && Parent.Connection.State == ConnectionState.Closed)
+                {
+                    await ((DbConnection)Parent.Connection).OpenAsync(cancellationToken).ConfigureAwait(false);
+
+                    if (!Parent.Suppress)
+                    {
+                        Parent.Transaction = Parent.Connection.BeginTransaction(Parent.IsolationLevel);
+                    }
+                }
+
+                // Opened the parent connection, now inherit their transaction
+                if (Parent != null && Parent.Connection.State == ConnectionState.Open)
+                {
+                    if (Parent.Transaction != null && Transaction == null)
+                    {
+                        Transaction = Parent.Transaction;
+                    }
+                }
+
+                return new PreparedContext(Connection, Transaction);
+            }
+            finally
+            {
+                _initializationLock.Release();
+            }
+        }
 
         /// <summary>
         /// Disposes ambient database context.

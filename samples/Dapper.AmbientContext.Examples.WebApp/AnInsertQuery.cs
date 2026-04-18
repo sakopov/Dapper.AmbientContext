@@ -10,7 +10,8 @@ namespace Dapper.AmbientContext.Examples.WebApp
 
         public async Task ExecuteAsync()
         {
-            await Context.ExecuteAsync("INSERT INTO SomeTable (SomeColumn) VALUES (SomeColumn = 'inserted');");
+            var prepared = await Context.PrepareAsync();
+            await prepared.Connection.ExecuteAsync("INSERT INTO SomeTable (SomeColumn) VALUES (SomeColumn = 'inserted');", transaction: prepared.Transaction);
         }
     }
 }

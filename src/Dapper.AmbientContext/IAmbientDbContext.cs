@@ -29,6 +29,8 @@ namespace Dapper.AmbientContext
 {
     using System;
     using System.Data;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Defines an interface that is implemented by the ambient database context.
@@ -56,6 +58,21 @@ namespace Dapper.AmbientContext
         /// Gets the transaction isolation level.
         /// </summary>
         IsolationLevel IsolationLevel { get; }
+
+        /// <summary>
+        /// Prepares the database context by ensuring the connection is open and transaction
+        /// is started (if not suppressed).
+        /// </summary>
+        /// <returns>A prepared context containing the connection and transaction.</returns>
+        PreparedContext Prepare();
+
+        /// <summary>
+        /// Asynchronously prepares the database context by ensuring the connection is open
+        /// and transaction is started (if not suppressed).
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task representing the asynchronous operation, containing the prepared context.</returns>
+        Task<PreparedContext> PrepareAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Commits ambient database context.

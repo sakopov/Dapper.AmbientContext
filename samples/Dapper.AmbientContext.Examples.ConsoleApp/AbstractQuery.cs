@@ -9,6 +9,6 @@
             _ambientDbContextLocator = ambientDbContextLocator;
         }
 
-        protected IAmbientDbContextQueryProxy Context => _ambientDbContextLocator.Get();
+        protected IAmbientDbContext Context => _ambientDbContextLocator.Get();
     }
 }

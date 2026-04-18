@@ -275,7 +275,7 @@ namespace Dapper.AmbientContext.Tests
 
                 _ambientDbContext = new AmbientDbContext(_dbConnectionMock.Object, true, false, IsolationLevel.ReadCommitted);
 
-                _ambientDbContext.PrepareConnectionAndTransaction();
+                _ambientDbContext.Prepare();
             };
 
             Because of = () =>
@@ -703,7 +703,7 @@ namespace Dapper.AmbientContext.Tests
 
                 _ambientDbContext = new AmbientDbContext(_dbConnectionMock.Object, true, false, IsolationLevel.ReadCommitted);
 
-                _ambientDbContext.PrepareConnectionAndTransaction();
+                _ambientDbContext.Prepare();
             };
 
             Because of = () =>
@@ -770,7 +770,7 @@ namespace Dapper.AmbientContext.Tests
 
                 _ambientDbContext = new AmbientDbContext(_dbConnectionMock.Object, true, false, IsolationLevel.ReadCommitted);
 
-                _ambientDbContext.PrepareConnectionAndTransaction();
+                _ambientDbContext.Prepare();
             };
 
             Because of = () =>
@@ -831,7 +831,7 @@ namespace Dapper.AmbientContext.Tests
 
                 _ambientDbContext = new AmbientDbContext(_dbConnectionMock.Object, true, true, IsolationLevel.ReadCommitted);
 
-                _ambientDbContext.PrepareConnectionAndTransaction();
+                _ambientDbContext.Prepare();
             };
 
             Because of = () =>
@@ -887,7 +887,7 @@ namespace Dapper.AmbientContext.Tests
 
                 _parentAmbientDbContext = new AmbientDbContext(_parentDbConnectionMock.Object, true, false, IsolationLevel.ReadCommitted);
 
-                _parentAmbientDbContext.PrepareConnectionAndTransaction();
+                _parentAmbientDbContext.Prepare();
 
                 _childDbConnectionMock = new Mock<IDbConnection>();
                 _childAmbientDbContext = new AmbientDbContext(_childDbConnectionMock.Object, true, false, IsolationLevel.ReadCommitted);
@@ -954,7 +954,7 @@ namespace Dapper.AmbientContext.Tests
 
                 _parentAmbientDbContext = new AmbientDbContext(_parentDbConnectionMock.Object, true, false, IsolationLevel.ReadCommitted);
 
-                _parentAmbientDbContext.PrepareConnectionAndTransaction();
+                _parentAmbientDbContext.Prepare();
 
                 _childDbConnectionMock = new Mock<IDbConnection>();
 
@@ -1029,7 +1029,7 @@ namespace Dapper.AmbientContext.Tests
 
             Because of = () =>
             {
-                _parentAmbientDbContext.PrepareConnectionAndTransaction();
+                _parentAmbientDbContext.Prepare();
             };
 
             It should_open_the_parent_database_connection = () =>
@@ -1091,7 +1091,7 @@ namespace Dapper.AmbientContext.Tests
 
             Because of = () =>
             {
-                _childAmbientDbContext.PrepareConnectionAndTransaction();
+                _childAmbientDbContext.Prepare();
             };
 
             It should_open_the_parent_database_connection = () =>
@@ -1150,7 +1150,7 @@ namespace Dapper.AmbientContext.Tests
 
                 _ambientDbContext = new AmbientDbContext(_dbConnectionMock.Object, true, false, IsolationLevel.ReadCommitted);
 
-                _ambientDbContext.PrepareConnectionAndTransaction();
+                _ambientDbContext.Prepare();
             };
 
             Because of = () =>
@@ -1211,7 +1211,7 @@ namespace Dapper.AmbientContext.Tests
 
                 _ambientDbContext = new AmbientDbContext(_dbConnectionMock.Object, true, true, IsolationLevel.ReadCommitted);
 
-                _ambientDbContext.PrepareConnectionAndTransaction();
+                _ambientDbContext.Prepare();
             };
 
             Because of = () =>
@@ -1267,7 +1267,7 @@ namespace Dapper.AmbientContext.Tests
 
                 _parentAmbientDbContext = new AmbientDbContext(_parentDbConnectionMock.Object, true, false, IsolationLevel.ReadCommitted);
 
-                _parentAmbientDbContext.PrepareConnectionAndTransaction();
+                _parentAmbientDbContext.Prepare();
 
                 _childDbConnectionMock = new Mock<IDbConnection>();
                 _childAmbientDbContext = new AmbientDbContext(_childDbConnectionMock.Object, true, false, IsolationLevel.ReadCommitted);
@@ -1334,7 +1334,7 @@ namespace Dapper.AmbientContext.Tests
 
                 _parentAmbientDbContext = new AmbientDbContext(_parentDbConnectionMock.Object, true, false, IsolationLevel.ReadCommitted);
 
-                _parentAmbientDbContext.PrepareConnectionAndTransaction();
+                _parentAmbientDbContext.Prepare();
 
                 _childDbConnectionMock = new Mock<IDbConnection>();
 
@@ -1404,7 +1404,7 @@ namespace Dapper.AmbientContext.Tests
 
                 _ambientDbContext = new AmbientDbContext(_dbConnectionMock.Object, true, false, IsolationLevel.ReadCommitted);
 
-                _ambientDbContext.PrepareConnectionAndTransaction();
+                _ambientDbContext.Prepare();
             };
 
             Because of = () =>

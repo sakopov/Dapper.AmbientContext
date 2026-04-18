@@ -10,7 +10,8 @@ namespace Dapper.AmbientContext.Examples.WebApp
 
         public async Task ExecuteAsync()
         {
-            await Context.ExecuteAsync("UPDATE SomeTable SET SomeColumn = 'updated';");
+            var prepared = await Context.PrepareAsync();
+            await prepared.Connection.ExecuteAsync("UPDATE SomeTable SET SomeColumn = 'updated';", transaction: prepared.Transaction);
         }
     }
 }
