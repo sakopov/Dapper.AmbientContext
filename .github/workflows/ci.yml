@@ -71,6 +71,17 @@ jobs:
           @semantic-release/github@10 `
           conventional-changelog-conventionalcommits@7
 
+    - name: Get Version Before Release
+      id: before_version
+      shell: pwsh
+      run: |
+        $beforeTag = git describe --tags --abbrev=0 2>$null
+        if ($beforeTag) {
+          Write-Output "before_tag=$beforeTag" >> $env:GITHUB_OUTPUT
+        } else {
+          Write-Output "before_tag=" >> $env:GITHUB_OUTPUT
+        }
+
     - name: Semantic Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -80,13 +91,15 @@ jobs:
       id: get_version
       shell: pwsh
       run: |
-        $version = git describe --tags --abbrev=0 2>$null
-        if ($version) {
-          $version = $version.TrimStart('v')
+        $afterTag = git describe --tags --abbrev=0 2>$null
+        $beforeTag = "${{ steps.before_version.outputs.before_tag }}"
+
+        if ($afterTag -and ($afterTag -ne $beforeTag)) {
+          $version = $afterTag.TrimStart('v')
           Write-Output "version=$version" >> $env:GITHUB_OUTPUT
           Write-Output "Released version: $version"
         } else {
-          Write-Output "No release created"
+          Write-Output "No new release created"
           Write-Output "version=" >> $env:GITHUB_OUTPUT
         }
 
