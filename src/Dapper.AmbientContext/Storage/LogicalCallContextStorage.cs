@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="LogicalCallContextStorage.cs">
-//   Copyright (c) 2016 Sergey Akopov
+//   Copyright (c) 2016-2026 Sergey Akopov
 //   
 //   Permission is hereby granted, free of charge, to any person obtaining a copy
 //   of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,7 @@
 //   Represents the type that implements storage on top of logical call context.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
-#if NET451
+#if NETFRAMEWORK
 namespace Dapper.AmbientContext.Storage
 {
     using System.Runtime.Remoting.Messaging;
@@ -49,31 +49,6 @@ namespace Dapper.AmbientContext.Storage
         public T GetValue<T>(string key)
         {
             return (T)CallContext.LogicalGetData(key);
-        }
-
-        /// <summary>
-        /// Determines whether a storage entry exists in the storage.
-        /// </summary>
-        /// <param name="key">
-        /// A unique identifier for the storage entry to search for.
-        /// </param>
-        /// <returns>
-        /// <c>true</c> if the storage contains a storage entry whose key matches key; otherwise, <c>false</c>.
-        /// </returns>
-        public bool Exists(string key)
-        {
-            return CallContext.LogicalGetData(key) != null;
-        }
-
-        /// <summary>
-        /// Removes a storage entry from the storage.
-        /// </summary>
-        /// <param name="key">
-        /// A unique identifier for the storage entry to remove.
-        /// </param>
-        public void RemoveValue(string key)
-        {
-            CallContext.FreeNamedDataSlot(key);
         }
 
         /// <summary>

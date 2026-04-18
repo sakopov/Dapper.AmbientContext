@@ -10,11 +10,11 @@ namespace Dapper.AmbientContext.Tests
     internal class AmbientDbContextFactoryTests
     {
         [Subject("Ambient DB Context Factory")]
-        class When_calling_create_with_none_closed_database_connection
+        class When_calling_create_with_non_closed_database_connection
         {
             Establish context = () =>
             {
-#if NET452
+#if NETFRAMEWORK
                 AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
 #else
                 AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());
@@ -56,7 +56,7 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
-#if NET452
+#if NETFRAMEWORK
                 AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
 #else
                 AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());

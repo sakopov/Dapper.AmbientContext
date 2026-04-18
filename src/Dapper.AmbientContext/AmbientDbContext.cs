@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="AmbientDbContext.cs">
-//   Copyright (c) 2016 Sergey Akopov
+//   Copyright (c) 2016-2026 Sergey Akopov
 //   
 //   Permission is hereby granted, free of charge, to any person obtaining a copy
 //   of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,9 @@ namespace Dapper.AmbientContext
     using System;
     using System.Collections.Immutable;
     using System.Data;
+    using System.Data.Common;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     using Storage;
 
@@ -38,12 +41,17 @@ namespace Dapper.AmbientContext
     /// Represents the type that holds details about the active database context and
     /// manages its lifetime.
     /// </summary>
-    public sealed partial class AmbientDbContext : IAmbientDbContext, IAmbientDbContextQueryProxy
+    public sealed class AmbientDbContext : IAmbientDbContext
     {
         /// <summary>
         /// The storage helper.
         /// </summary>
         private ContextualStorageHelper _storageHelper;
+
+        /// <summary>
+        /// The semaphore used to synchronize connection and transaction initialization.
+        /// </summary>
+        private readonly System.Threading.SemaphoreSlim _initializationLock = new System.Threading.SemaphoreSlim(1, 1);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AmbientDbContext"/> class.
@@ -74,7 +82,8 @@ namespace Dapper.AmbientContext
                 {
                     var parent = immutableStack.Peek();
 
-                    Parent = parent;
+                    Parent = (AmbientDbContext)parent;
+
                     Connection = parent.Connection;
                     Transaction = parent.Transaction;
                     Suppress = parent.Suppress;
@@ -94,10 +103,10 @@ namespace Dapper.AmbientContext
         public IDbConnection Connection { get; private set; }
 
         /// <summary>
-        /// Gets or sets the ambient database context transaction. If inheriting from a parent
+        /// Gets the ambient database context transaction. If inheriting from a parent
         /// ambient database context, this property will be assigned to parent's transaction.
         /// </summary>
-        public IDbTransaction Transaction { get; set; }
+        public IDbTransaction Transaction { get; internal set; }
 
         /// <summary>
         /// Gets a value indicating whether to suppress the database transaction.
@@ -111,10 +120,97 @@ namespace Dapper.AmbientContext
 
         /// <summary>
         /// Gets the parent ambient database context. This property will only be set
-        /// if an ambient database context joins an already existing context and inherits its 
+        /// if an ambient database context joins an already existing context and inherits its
         /// state.
         /// </summary>
-        internal IAmbientDbContext Parent { get; }
+        internal AmbientDbContext Parent { get; }
+
+        /// <summary>
+        /// Prepares the database context by ensuring the connection is open and transaction
+        /// is started (if not suppressed).
+        /// </summary>
+        /// <returns>A prepared context containing the connection and transaction.</returns>
+        public PreparedContext Prepare()
+        {
+            _initializationLock.Wait();
+            try
+            {
+                if (Parent != null)
+                {
+                    // Let parent prepare itself using its own lock
+                    Parent.Prepare();
+
+                    // Inherit parent's transaction if we don't have one
+                    if (Parent.Transaction != null && Transaction == null)
+                    {
+                        Transaction = Parent.Transaction;
+                    }
+                }
+                else
+                {
+                    // We're the root context - prepare ourselves
+                    if (Connection.State != ConnectionState.Open)
+                    {
+                        Connection.Open();
+                    }
+
+                    if (!Suppress && Transaction == null)
+                    {
+                        Transaction = Connection.BeginTransaction(IsolationLevel);
+                    }
+                }
+
+                return new PreparedContext(Connection, Transaction);
+            }
+            finally
+            {
+                _initializationLock.Release();
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously prepares the database context by ensuring the connection is open
+        /// and transaction is started (if not suppressed).
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task representing the asynchronous operation, containing the prepared context.</returns>
+        public async Task<PreparedContext> PrepareAsync(CancellationToken cancellationToken = default)
+        {
+            await _initializationLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                if (Parent != null)
+                {
+                    // Let parent prepare itself using its own lock
+                    await Parent.PrepareAsync(cancellationToken).ConfigureAwait(false);
+
+                    // Inherit parent's transaction if we don't have one
+                    if (Parent.Transaction != null && Transaction == null)
+                    {
+                        Transaction = Parent.Transaction;
+                    }
+                }
+                else
+                {
+                    // We're the root context - prepare ourselves
+                    if (Connection.State != ConnectionState.Open)
+                    {
+                        await ((DbConnection)Connection).OpenAsync(cancellationToken).ConfigureAwait(false);
+                    }
+
+                    if (!Suppress && Transaction == null)
+                    {
+                        Transaction = Connection.BeginTransaction(IsolationLevel);
+                    }
+                }
+
+                return new PreparedContext(Connection, Transaction);
+            }
+            finally
+            {
+                _initializationLock.Release();
+            }
+        }
 
         /// <summary>
         /// Disposes ambient database context.
@@ -140,27 +236,41 @@ namespace Dapper.AmbientContext
 
             _storageHelper.SaveStack(immutableStack);
 
-            if (Parent == null)
+            try
             {
-                if (Transaction != null)
+                if (Parent == null)
                 {
-                    Commit();
-                }
-
-                if (Connection != null)
-                {
-                    if (Connection.State == ConnectionState.Open)
+                    try
                     {
-                        Connection.Close();
+                        if (Transaction != null)
+                        {
+                            Commit();
+                        }
                     }
-
-                    Connection.Dispose();
-                    Connection = null;
+                    finally
+                    {
+                        if (Connection != null)
+                        {
+                            try
+                            {
+                                if (Connection.State == ConnectionState.Open)
+                                {
+                                    Connection.Close();
+                                }
+                            }
+                            finally
+                            {
+                                Connection.Dispose();
+                                Connection = null;
+                            }
+                        }
+                    }
                 }
             }
-
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
+            finally
+            {
+                _initializationLock?.Dispose();
+            }
         }
 
         /// <summary>
@@ -234,34 +344,6 @@ namespace Dapper.AmbientContext
             _storageHelper = new ContextualStorageHelper(storage);
 
             return _storageHelper.GetStack();
-        }
-
-        /// <summary>
-        /// Injects current database transaction into the specified command definition.
-        /// </summary>
-        /// <param name="commandDefinition">
-        /// The command definition to inject the current database transaction into.
-        /// </param>
-        /// <returns>
-        /// The command definition with the injected database transaction.
-        /// </returns>
-        private CommandDefinition InjectTransaction(CommandDefinition commandDefinition)
-        {
-            if (Transaction == null)
-            {
-                return commandDefinition;
-            }
-
-            var command = new CommandDefinition(
-                commandDefinition.CommandText,
-                commandDefinition.Parameters,
-                Transaction,
-                commandDefinition.CommandTimeout,
-                commandDefinition.CommandType,
-                commandDefinition.Flags,
-                commandDefinition.CancellationToken);
-
-            return command;
         }
     }
 }

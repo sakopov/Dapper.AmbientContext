@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="IAmbientDbContextLocator.cs">
-//   Copyright (c) 2016 Sergey Akopov
+//   Copyright (c) 2016-2026 Sergey Akopov
 //   
 //   Permission is hereby granted, free of charge, to any person obtaining a copy
 //   of this software and associated documentation files (the "Software"), to deal
@@ -36,8 +36,8 @@ namespace Dapper.AmbientContext
         /// Retrieves active ambient database context from the storage.
         /// </summary>
         /// <returns>
-        /// The active <see cref="IAmbientDbContextQueryProxy"/> instance.
+        /// The active <see cref="IAmbientDbContext"/> instance.
         /// </returns>
-        IAmbientDbContextQueryProxy Get();
+        IAmbientDbContext Get();
     }
 }

@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="IContextualStorage.cs">
-//   Copyright (c) 2016 Sergey Akopov
+//   Copyright (c) 2016-2026 Sergey Akopov
 //   
 //   Permission is hereby granted, free of charge, to any person obtaining a copy
 //   of this software and associated documentation files (the "Software"), to deal
@@ -45,25 +45,6 @@ namespace Dapper.AmbientContext.Storage
         /// A reference to the storage entry that is identified by key, if the entry exists; otherwise, <c>null</c>.
         /// </returns>
         T GetValue<T>(string key);
-
-        /// <summary>
-        /// Determines whether a storage entry exists in the storage.
-        /// </summary>
-        /// <param name="key">
-        /// A unique identifier for the storage entry to search for.
-        /// </param>
-        /// <returns>
-        /// <c>true</c> if the storage contains a storage entry whose key matches key; otherwise, <c>false</c>.
-        /// </returns>
-        bool Exists(string key);
-
-        /// <summary>
-        /// Removes a storage entry from the storage.
-        /// </summary>
-        /// <param name="key">
-        /// A unique identifier for the storage entry to remove.
-        /// </param>
-        void RemoveValue(string key);
 
         /// <summary>
         /// Inserts a storage entry into the storage by using a key and a value.

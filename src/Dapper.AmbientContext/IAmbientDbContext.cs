@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="IAmbientDbContext.cs">
-//   Copyright (c) 2016 Sergey Akopov
+//   Copyright (c) 2016-2026 Sergey Akopov
 //   
 //   Permission is hereby granted, free of charge, to any person obtaining a copy
 //   of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,7 @@
 //   THE SOFTWARE.
 // </copyright>
 // <summary>
-//   Defines an interface that is implemented by types capable of retrieving ambient database context from the storage.
+//   Defines an interface for the ambient database context.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -29,6 +29,8 @@ namespace Dapper.AmbientContext
 {
     using System;
     using System.Data;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Defines an interface that is implemented by the ambient database context.
@@ -42,10 +44,10 @@ namespace Dapper.AmbientContext
         IDbConnection Connection { get; }
 
         /// <summary>
-        /// Gets or sets the ambient database context transaction. If inheriting from a parent
+        /// Gets the ambient database context transaction. If inheriting from a parent
         /// ambient database context, this property will be assigned to parent's transaction.
         /// </summary>
-        IDbTransaction Transaction { get; set; }
+        IDbTransaction Transaction { get; }
 
         /// <summary>
         /// Gets a value indicating whether to suppress the database transaction.
@@ -56,6 +58,21 @@ namespace Dapper.AmbientContext
         /// Gets the transaction isolation level.
         /// </summary>
         IsolationLevel IsolationLevel { get; }
+
+        /// <summary>
+        /// Prepares the database context by ensuring the connection is open and transaction
+        /// is started (if not suppressed).
+        /// </summary>
+        /// <returns>A prepared context containing the connection and transaction.</returns>
+        PreparedContext Prepare();
+
+        /// <summary>
+        /// Asynchronously prepares the database context by ensuring the connection is open
+        /// and transaction is started (if not suppressed).
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A task representing the asynchronous operation, containing the prepared context.</returns>
+        Task<PreparedContext> PrepareAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Commits ambient database context.

@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="AmbientDbContextStorageProvider.cs">
-//   Copyright (c) 2016 Sergey Akopov
+//   Copyright (c) 2016-2026 Sergey Akopov
 //   
 //   Permission is hereby granted, free of charge, to any person obtaining a copy
 //   of this software and associated documentation files (the "Software"), to deal
@@ -63,11 +63,8 @@ namespace Dapper.AmbientContext
         /// Sets contextual storage strategy for ambient database context.
         /// </summary>
         /// <param name="storage">
-        /// The storage to use.
+        /// The storage to use. Pass <c>null</c> to clear the current storage.
         /// </param>
-        /// <exception cref="ArgumentNullException">
-        /// when <paramref name="storage"/> is <c>null</c>.
-        /// </exception>
         public static void SetStorage(IContextualStorage storage)
         {
             _storage = storage;

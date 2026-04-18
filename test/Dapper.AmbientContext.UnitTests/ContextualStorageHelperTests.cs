@@ -14,7 +14,7 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
-#if NET452
+#if NETFRAMEWORK
                 _storage = new LogicalCallContextStorage();
 #else
                 _storage = new AsyncLocalContextStorage();
@@ -27,12 +27,13 @@ namespace Dapper.AmbientContext.Tests
             {
                 _contextualStorageHelper = new ContextualStorageHelper(AmbientDbContextStorageProvider.Storage);
 
-                _expectedValue = _storage.Exists(AmbientDbContextStorageKey.Key);
+                _stack = _contextualStorageHelper.GetStack();
             };
 
             It should_create_a_cross_reference_in_the_storage_to_the_ambient_database_context_stack = () =>
             {
-                _expectedValue.ShouldBeTrue();
+                _stack.ShouldNotBeNull();
+                _stack.IsEmpty.ShouldBeTrue();
             };
 
             Cleanup test = () =>
@@ -40,7 +41,7 @@ namespace Dapper.AmbientContext.Tests
                 AmbientDbContextStorageProvider.SetStorage(null);
             };
 
-            private static bool _expectedValue;
+            private static IImmutableStack<IAmbientDbContext> _stack;
             private static IContextualStorage _storage;
             private static ContextualStorageHelper _contextualStorageHelper;
         }
@@ -50,7 +51,7 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
-#if NET452
+#if NETFRAMEWORK
                 AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
 #else
                 AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());
@@ -84,7 +85,7 @@ namespace Dapper.AmbientContext.Tests
         {
             Establish context = () =>
             {
-#if NET452
+#if NETFRAMEWORK
                 AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
 #else
                 AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());

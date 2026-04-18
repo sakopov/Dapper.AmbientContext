@@ -1,7 +1,7 @@
-﻿#if NETSTANDARD1_3 || NETSTANDARD2_0
+﻿#if NETSTANDARD2_0
 // --------------------------------------------------------------------------------------------------------------------
-// <copyright file="LogicalCallContextStorage.cs">
-//   Copyright (c) 2016 Sergey Akopov
+// <copyright file="AsyncLocalContextStorage.cs">
+//   Copyright (c) 2016-2026 Sergey Akopov
 //   
 //   Permission is hereby granted, free of charge, to any person obtaining a copy
 //   of this software and associated documentation files (the "Software"), to deal
@@ -52,31 +52,6 @@ namespace Dapper.AmbientContext.Storage
         public T GetValue<T>(string key)
         {
             return (T)Storage.Value;
-        }
-
-        /// <summary>
-        /// Determines whether a storage entry exists in the storage.
-        /// </summary>
-        /// <param name="key">
-        /// A unique identifier for the storage entry to search for.
-        /// </param>
-        /// <returns>
-        /// <c>true</c> if the storage contains a storage entry whose key matches key; otherwise, <c>false</c>.
-        /// </returns>
-        public bool Exists(string key)
-        {
-            return Storage.Value != null;
-        }
-
-        /// <summary>
-        /// Removes a storage entry from the storage.
-        /// </summary>
-        /// <param name="key">
-        /// A unique identifier for the storage entry to remove.
-        /// </param>
-        public void RemoveValue(string key)
-        {
-            Storage.Value = null;
         }
 
         /// <summary>

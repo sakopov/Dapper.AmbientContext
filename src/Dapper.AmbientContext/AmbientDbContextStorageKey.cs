@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="AmbientDbContextStorageKey.cs">
-//   Copyright (c) 2016 Sergey Akopov
+//   Copyright (c) 2016-2026 Sergey Akopov
 //   
 //   Permission is hereby granted, free of charge, to any person obtaining a copy
 //   of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@ namespace Dapper.AmbientContext
     internal class AmbientDbContextStorageKey
     {
         /// <summary>
-        /// The key to use when store or retrieving ambient database context from storage.
+        /// The key to use when storing or retrieving ambient database context from storage.
         /// </summary>
         public const string Key = "ambient_db_context";
     }

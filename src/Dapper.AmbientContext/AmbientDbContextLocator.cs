@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="AmbientDbContextLocator.cs">
-//   Copyright (c) 2016 Sergey Akopov
+//   Copyright (c) 2016-2026 Sergey Akopov
 //   
 //   Permission is hereby granted, free of charge, to any person obtaining a copy
 //   of this software and associated documentation files (the "Software"), to deal
@@ -52,12 +52,12 @@ namespace Dapper.AmbientContext
         /// Retrieves active ambient database context from the storage.
         /// </summary>
         /// <returns>
-        /// The active <see cref="IAmbientDbContextQueryProxy"/> instance.
+        /// The active <see cref="IAmbientDbContext"/> instance.
         /// </returns>
         /// <exception cref="AmbientDbContextException">
         /// when the contextual storage does not contain an active ambient database context.
         /// </exception>
-        public IAmbientDbContextQueryProxy Get()
+        public IAmbientDbContext Get()
         {
             var immutableStack = _storageHelper.GetStack();
 
@@ -66,7 +66,7 @@ namespace Dapper.AmbientContext
                 throw new InvalidOperationException("Could not find active ambient database context instance. Use AmbientDbContextFactory to create ambient database context before attempting to execute queries.");
             }
 
-            return (IAmbientDbContextQueryProxy)immutableStack.Peek();
+            return immutableStack.Peek();
         }
     }
 }

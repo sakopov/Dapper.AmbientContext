@@ -1,0 +1,119 @@
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        framework: [net462, net8.0]
+        exclude:
+          - os: ubuntu-latest
+            framework: net462
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+          8.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Run Unit Tests ${{ matrix.framework }} on ${{ matrix.os }}
+      run: dotnet test test/Dapper.AmbientContext.UnitTests/Dapper.AmbientContext.UnitTests.csproj --no-build --configuration Release --framework ${{ matrix.framework }}
+
+    - name: Run Integration Tests
+      if: matrix.os == 'ubuntu-latest' && matrix.framework == 'net8.0'
+      run: dotnet test test/Dapper.AmbientContext.IntegrationTests/Dapper.AmbientContext.IntegrationTests.csproj --no-build --configuration Release --framework net8.0
+
+  release:
+    needs: test
+    runs-on: windows-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 'lts/*'
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: |
+          8.0.x
+
+    - name: Install semantic-release
+      run: npm install -g semantic-release@23 @semantic-release/changelog@6 @semantic-release/git@10 @semantic-release/github@10 conventional-changelog-conventionalcommits@7
+
+    - name: Get Version Before Release
+      id: before_version
+      shell: pwsh
+      run: |
+        $beforeTag = git describe --tags --abbrev=0 2>$null
+        if ($beforeTag) {
+          Write-Output "before_tag=$beforeTag" >> $env:GITHUB_OUTPUT
+        } else {
+          Write-Output "before_tag=" >> $env:GITHUB_OUTPUT
+        }
+
+    - name: Semantic Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: npx semantic-release
+
+    - name: Get Release Version
+      id: get_version
+      shell: pwsh
+      run: |
+        $afterTag = git describe --tags --abbrev=0 2>$null
+        $beforeTag = "${{ steps.before_version.outputs.before_tag }}"
+
+        if ($afterTag -and ($afterTag -ne $beforeTag)) {
+          $version = $afterTag.TrimStart('v')
+          Write-Output "version=$version" >> $env:GITHUB_OUTPUT
+          Write-Output "Released version: $version"
+        } else {
+          Write-Output "No new release created"
+          Write-Output "version=" >> $env:GITHUB_OUTPUT
+        }
+
+    - name: Restore dependencies
+      if: steps.get_version.outputs.version != ''
+      run: dotnet restore
+
+    - name: Build
+      if: steps.get_version.outputs.version != ''
+      run: dotnet build --no-restore --configuration Release /p:Version=${{ steps.get_version.outputs.version }}
+
+    - name: Pack NuGet
+      if: steps.get_version.outputs.version != ''
+      run: dotnet pack src/Dapper.AmbientContext/Dapper.AmbientContext.csproj --no-build --configuration Release --output ./artifacts /p:PackageVersion=${{ steps.get_version.outputs.version }}
+
+    - name: Push to NuGet
+      if: steps.get_version.outputs.version != ''
+      run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate

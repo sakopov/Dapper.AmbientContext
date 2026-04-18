@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="AmbientDbContextException.cs">
-//   Copyright (c) 2016 Sergey Akopov
+//   Copyright (c) 2016-2026 Sergey Akopov
 //   
 //   Permission is hereby granted, free of charge, to any person obtaining a copy
 //   of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,7 @@
 //   THE SOFTWARE.
 // </copyright>
 // <summary>
-//   Represents the type that is responsible for creating ambient database context.
+//   Represents exceptions that occur during ambient database context operations.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
