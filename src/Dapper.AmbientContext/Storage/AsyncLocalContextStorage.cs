@@ -1,6 +1,6 @@
 ﻿#if NETSTANDARD1_3 || NETSTANDARD2_0
 // --------------------------------------------------------------------------------------------------------------------
-// <copyright file="LogicalCallContextStorage.cs">
+// <copyright file="AsyncLocalContextStorage.cs">
 //   Copyright (c) 2016-2026 Sergey Akopov
 //   
 //   Permission is hereby granted, free of charge, to any person obtaining a copy
