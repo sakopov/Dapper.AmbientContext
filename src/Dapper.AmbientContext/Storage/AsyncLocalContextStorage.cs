@@ -55,31 +55,6 @@ namespace Dapper.AmbientContext.Storage
         }
 
         /// <summary>
-        /// Determines whether a storage entry exists in the storage.
-        /// </summary>
-        /// <param name="key">
-        /// A unique identifier for the storage entry to search for.
-        /// </param>
-        /// <returns>
-        /// <c>true</c> if the storage contains a storage entry whose key matches key; otherwise, <c>false</c>.
-        /// </returns>
-        public bool Exists(string key)
-        {
-            return Storage.Value != null;
-        }
-
-        /// <summary>
-        /// Removes a storage entry from the storage.
-        /// </summary>
-        /// <param name="key">
-        /// A unique identifier for the storage entry to remove.
-        /// </param>
-        public void RemoveValue(string key)
-        {
-            Storage.Value = null;
-        }
-
-        /// <summary>
         /// Inserts a storage entry into the storage by using a key and a value.
         /// </summary>
         /// <param name="key">
