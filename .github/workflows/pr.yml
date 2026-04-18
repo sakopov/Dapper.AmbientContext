@@ -31,10 +31,14 @@ jobs:
           8.0.x
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: |
+        dotnet restore src/Dapper.AmbientContext/Dapper.AmbientContext.csproj
+        dotnet restore test/Dapper.AmbientContext.Tests/Dapper.AmbientContext.Tests.csproj
 
     - name: Build
-      run: dotnet build --no-restore --configuration Release
+      run: |
+        dotnet build src/Dapper.AmbientContext/Dapper.AmbientContext.csproj --no-restore --configuration Release
+        dotnet build test/Dapper.AmbientContext.Tests/Dapper.AmbientContext.Tests.csproj --no-restore --configuration Release
 
     - name: Test ${{ matrix.framework }}
       run: dotnet test test/Dapper.AmbientContext.Tests/Dapper.AmbientContext.Tests.csproj --no-build --configuration Release --framework ${{ matrix.framework }} --logger "trx;LogFileName=test-results-${{ matrix.framework }}.trx"
