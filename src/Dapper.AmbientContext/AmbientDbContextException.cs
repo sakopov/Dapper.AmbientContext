@@ -21,7 +21,7 @@
 //   THE SOFTWARE.
 // </copyright>
 // <summary>
-//   Represents the type that is responsible for creating ambient database context.
+//   Represents exceptions that occur during ambient database context operations.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 

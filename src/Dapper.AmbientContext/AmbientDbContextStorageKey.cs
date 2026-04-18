@@ -33,7 +33,7 @@ namespace Dapper.AmbientContext
     internal class AmbientDbContextStorageKey
     {
         /// <summary>
-        /// The key to use when store or retrieving ambient database context from storage.
+        /// The key to use when storing or retrieving ambient database context from storage.
         /// </summary>
         public const string Key = "ambient_db_context";
     }

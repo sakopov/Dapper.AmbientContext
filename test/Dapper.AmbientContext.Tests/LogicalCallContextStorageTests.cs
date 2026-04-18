@@ -39,7 +39,7 @@ namespace Dapper.AmbientContext.Tests
         }
 
         [Subject("Logical CallContext Storage")]
-        class When_getting_inexisting_item_from_logical_callcontext_storage
+        class When_getting_nonexistent_item_from_logical_callcontext_storage
         {
             Establish context = () =>
             {

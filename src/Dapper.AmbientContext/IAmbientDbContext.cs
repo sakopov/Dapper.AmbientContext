@@ -21,7 +21,7 @@
 //   THE SOFTWARE.
 // </copyright>
 // <summary>
-//   Defines an interface that is implemented by types capable of retrieving ambient database context from the storage.
+//   Defines an interface for the ambient database context.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
