@@ -29,6 +29,11 @@ namespace Dapper.AmbientContext.Tests
                 _expectedValue.ShouldEqual("value");
             };
 
+            Cleanup test = () =>
+            {
+                _storage.SetValue<string>("key", null);
+            };
+
             private static string _expectedValue;
             private static IContextualStorage _storage;
         }
