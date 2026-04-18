@@ -1440,5 +1440,135 @@ namespace Dapper.AmbientContext.Tests
             private static AmbientDbContext _ambientDbContext;
             private static ContextualStorageHelper _storageHelper;
         }
+
+        [Subject("Ambient DB Context Thread Safety")]
+        class When_preparing_multiple_child_contexts_concurrently
+        {
+            Establish context = () =>
+            {
+#if NET452
+                AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
+#else
+                AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());
+#endif
+
+                _storageHelper = new ContextualStorageHelper(AmbientDbContextStorageProvider.Storage);
+
+                _dbConnectionMock = new Mock<IDbConnection>();
+                _dbTransactionMock = new Mock<IDbTransaction>();
+
+                // Track connection state
+                _connectionState = ConnectionState.Closed;
+                _dbConnectionMock.Setup(mock => mock.State).Returns(() => _connectionState);
+                _dbConnectionMock.Setup(mock => mock.Open()).Callback(() =>
+                {
+                    if (_connectionState == ConnectionState.Open)
+                    {
+                        throw new InvalidOperationException("Connection is already open.");
+                    }
+                    System.Threading.Interlocked.Increment(ref _openCallCount);
+                    _connectionState = ConnectionState.Open;
+                });
+                _dbConnectionMock.Setup(mock => mock.BeginTransaction(Moq.It.IsAny<IsolationLevel>())).Returns(() =>
+                {
+                    System.Threading.Interlocked.Increment(ref _beginTransactionCallCount);
+                    return _dbTransactionMock.Object;
+                });
+
+                // Create parent context
+                _parentAmbientDbContext = new AmbientDbContext(_dbConnectionMock.Object, false, false, IsolationLevel.ReadCommitted);
+
+                // Create child contexts
+                _childAmbientDbContext1 = new AmbientDbContext(null, true, false, IsolationLevel.ReadCommitted);
+                _childAmbientDbContext2 = new AmbientDbContext(null, true, false, IsolationLevel.ReadCommitted);
+                _childAmbientDbContext3 = new AmbientDbContext(null, true, false, IsolationLevel.ReadCommitted);
+            };
+
+            Because of = () =>
+            {
+                // Prepare children concurrently
+                var task1 = System.Threading.Tasks.Task.Run(() =>
+                {
+                    try
+                    {
+                        _childAmbientDbContext1.Prepare();
+                    }
+                    catch (Exception ex)
+                    {
+                        _exceptions.Add(ex);
+                    }
+                });
+
+                var task2 = System.Threading.Tasks.Task.Run(() =>
+                {
+                    try
+                    {
+                        _childAmbientDbContext2.Prepare();
+                    }
+                    catch (Exception ex)
+                    {
+                        _exceptions.Add(ex);
+                    }
+                });
+
+                var task3 = System.Threading.Tasks.Task.Run(() =>
+                {
+                    try
+                    {
+                        _childAmbientDbContext3.Prepare();
+                    }
+                    catch (Exception ex)
+                    {
+                        _exceptions.Add(ex);
+                    }
+                });
+
+                System.Threading.Tasks.Task.WaitAll(task1, task2, task3);
+            };
+
+            It should_not_throw_any_exceptions = () =>
+            {
+                _exceptions.ShouldBeEmpty();
+            };
+
+            It should_open_the_connection_exactly_once = () =>
+            {
+                _openCallCount.ShouldEqual(1);
+            };
+
+            It should_begin_transaction_exactly_once = () =>
+            {
+                _beginTransactionCallCount.ShouldEqual(1);
+            };
+
+            It should_have_all_children_inherit_the_same_transaction = () =>
+            {
+                _childAmbientDbContext1.Transaction.ShouldEqual(_dbTransactionMock.Object);
+                _childAmbientDbContext2.Transaction.ShouldEqual(_dbTransactionMock.Object);
+                _childAmbientDbContext3.Transaction.ShouldEqual(_dbTransactionMock.Object);
+            };
+
+            Cleanup test = () =>
+            {
+                AmbientDbContextStorageProvider.SetStorage(null);
+
+                _childAmbientDbContext3?.Dispose();
+                _childAmbientDbContext2?.Dispose();
+                _childAmbientDbContext1?.Dispose();
+                _parentAmbientDbContext?.Dispose();
+            };
+
+            private static Mock<IDbConnection> _dbConnectionMock;
+            private static Mock<IDbTransaction> _dbTransactionMock;
+            private static AmbientDbContext _parentAmbientDbContext;
+            private static AmbientDbContext _childAmbientDbContext1;
+            private static AmbientDbContext _childAmbientDbContext2;
+            private static AmbientDbContext _childAmbientDbContext3;
+            private static ContextualStorageHelper _storageHelper;
+            private static int _openCallCount;
+            private static int _beginTransactionCallCount;
+            private static ConnectionState _connectionState;
+            private static System.Collections.Generic.List<Exception> _exceptions = new System.Collections.Generic.List<Exception>();
+        }
     }
 }

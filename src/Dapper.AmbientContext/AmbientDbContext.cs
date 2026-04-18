@@ -135,34 +135,28 @@ namespace Dapper.AmbientContext
             _initializationLock.Wait();
             try
             {
-                // The parent itself with a closed connection
-                if (Parent == null && Connection.State != ConnectionState.Open)
+                if (Parent != null)
                 {
-                    Connection.Open();
+                    // Let parent prepare itself using its own lock
+                    Parent.Prepare();
 
-                    if (!Suppress)
-                    {
-                        Transaction = Connection.BeginTransaction(IsolationLevel);
-                    }
-                }
-
-                // Has a parent but their connection was never opened
-                if (Parent != null && Parent.Connection.State == ConnectionState.Closed)
-                {
-                    Parent.Connection.Open();
-
-                    if (!Parent.Suppress)
-                    {
-                        Parent.Transaction = Parent.Connection.BeginTransaction(Parent.IsolationLevel);
-                    }
-                }
-
-                // Opened the parent connection, now inherit their transaction
-                if (Parent != null && Parent.Connection.State == ConnectionState.Open)
-                {
+                    // Inherit parent's transaction if we don't have one
                     if (Parent.Transaction != null && Transaction == null)
                     {
                         Transaction = Parent.Transaction;
+                    }
+                }
+                else
+                {
+                    // We're the root context - prepare ourselves
+                    if (Connection.State != ConnectionState.Open)
+                    {
+                        Connection.Open();
+                    }
+
+                    if (!Suppress && Transaction == null)
+                    {
+                        Transaction = Connection.BeginTransaction(IsolationLevel);
                     }
                 }
 
@@ -185,34 +179,28 @@ namespace Dapper.AmbientContext
             await _initializationLock.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
-                // The parent itself with a closed connection
-                if (Parent == null && Connection.State != ConnectionState.Open)
+                if (Parent != null)
                 {
-                    await ((DbConnection)Connection).OpenAsync(cancellationToken).ConfigureAwait(false);
+                    // Let parent prepare itself using its own lock
+                    await Parent.PrepareAsync(cancellationToken).ConfigureAwait(false);
 
-                    if (!Suppress)
-                    {
-                        Transaction = Connection.BeginTransaction(IsolationLevel);
-                    }
-                }
-
-                // Has a parent but their connection was never opened
-                if (Parent != null && Parent.Connection.State == ConnectionState.Closed)
-                {
-                    await ((DbConnection)Parent.Connection).OpenAsync(cancellationToken).ConfigureAwait(false);
-
-                    if (!Parent.Suppress)
-                    {
-                        Parent.Transaction = Parent.Connection.BeginTransaction(Parent.IsolationLevel);
-                    }
-                }
-
-                // Opened the parent connection, now inherit their transaction
-                if (Parent != null && Parent.Connection.State == ConnectionState.Open)
-                {
+                    // Inherit parent's transaction if we don't have one
                     if (Parent.Transaction != null && Transaction == null)
                     {
                         Transaction = Parent.Transaction;
+                    }
+                }
+                else
+                {
+                    // We're the root context - prepare ourselves
+                    if (Connection.State != ConnectionState.Open)
+                    {
+                        await ((DbConnection)Connection).OpenAsync(cancellationToken).ConfigureAwait(false);
+                    }
+
+                    if (!Suppress && Transaction == null)
+                    {
+                        Transaction = Connection.BeginTransaction(IsolationLevel);
                     }
                 }
 
