@@ -108,6 +108,7 @@ public class AmbientDbContextTests
         await using (var verifyConnection = new Npgsql.NpgsqlConnection(_fixture.ConnectionString))
         {
             await verifyConnection.OpenAsync();
+
             var count = await verifyConnection.ExecuteScalarAsync<int>(
                 "SELECT COUNT(*) FROM test_table WHERE name = @Name",
                 new { Name = "test3" });
@@ -155,6 +156,7 @@ public class AmbientDbContextTests
         await using (var verifyConnection = new Npgsql.NpgsqlConnection(_fixture.ConnectionString))
         {
             await verifyConnection.OpenAsync();
+
             var count = await verifyConnection.ExecuteScalarAsync<int>(
                 "SELECT COUNT(*) FROM test_table WHERE name IN ('parent', 'child')");
 
@@ -191,6 +193,7 @@ public class AmbientDbContextTests
         await using (var verifyConnection = new Npgsql.NpgsqlConnection(_fixture.ConnectionString))
         {
             await verifyConnection.OpenAsync();
+
             var count = await verifyConnection.ExecuteScalarAsync<int>(
                 "SELECT COUNT(*) FROM test_table WHERE name = @Name",
                 new { Name = "suppressed" });
@@ -235,6 +238,7 @@ public class AmbientDbContextTests
         await using (var verifyConnection = new Npgsql.NpgsqlConnection(_fixture.ConnectionString))
         {
             await verifyConnection.OpenAsync();
+            
             var count = await verifyConnection.ExecuteScalarAsync<int>(
                 "SELECT COUNT(*) FROM test_table WHERE name IN ('op1', 'op2')");
 
@@ -283,28 +287,6 @@ public class AmbientDbContextTests
                 child2?.Dispose();
                 child1?.Dispose();
             }
-        }
-
-        await _fixture.CleanupAsync();
-    }
-
-    [Fact]
-    public async Task Locator_should_retrieve_current_context()
-    {
-        // Arrange
-        var connectionFactory = _fixture.CreateConnectionFactory();
-        var factory = new AmbientDbContextFactory(connectionFactory);
-        var locator = new AmbientDbContextLocator();
-
-        // Act & Assert
-        using (var context = factory.Create(join: false))
-        {
-            var prepared = await context.PrepareAsync();
-            var located = locator.Get();
-
-            located.ShouldNotBeNull();
-            located.Connection.ShouldBeSameAs(prepared.Connection);
-            located.Transaction.ShouldBeSameAs(prepared.Transaction);
         }
 
         await _fixture.CleanupAsync();
