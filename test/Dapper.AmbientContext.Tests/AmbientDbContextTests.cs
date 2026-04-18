@@ -1570,5 +1570,99 @@ namespace Dapper.AmbientContext.Tests
             private static ConnectionState _connectionState;
             private static System.Collections.Generic.List<Exception> _exceptions = new System.Collections.Generic.List<Exception>();
         }
+
+        [Subject("Ambient DB Context Disposal Exception Safety")]
+        class When_dispose_throws_during_transaction_commit
+        {
+            Establish context = () =>
+            {
+#if NET452
+                AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
+#else
+                AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());
+#endif
+
+                _dbConnectionMock = new Mock<IDbConnection>();
+                _dbConnectionMock.Setup(mock => mock.State).Returns(ConnectionState.Closed);
+
+                _dbTransactionMock = new Mock<IDbTransaction>();
+                _dbTransactionMock.Setup(mock => mock.Commit()).Throws(new InvalidOperationException("Commit failed"));
+
+                _ambientDbContext = new AmbientDbContext(_dbConnectionMock.Object, false, false, IsolationLevel.ReadCommitted);
+                _ambientDbContext.Transaction = _dbTransactionMock.Object;
+            };
+
+            Because of = () =>
+            {
+                _exception = Catch.Exception(() => _ambientDbContext.Dispose());
+            };
+
+            It should_throw_the_commit_exception = () =>
+            {
+                _exception.ShouldNotBeNull();
+                _exception.ShouldBeOfExactType<InvalidOperationException>();
+                _exception.Message.ShouldEqual("Commit failed");
+            };
+
+            It should_still_dispose_the_connection = () =>
+            {
+                _dbConnectionMock.Verify(mock => mock.Dispose(), Times.Once);
+            };
+
+            Cleanup test = () =>
+            {
+                AmbientDbContextStorageProvider.SetStorage(null);
+            };
+
+            private static Mock<IDbConnection> _dbConnectionMock;
+            private static Mock<IDbTransaction> _dbTransactionMock;
+            private static AmbientDbContext _ambientDbContext;
+            private static Exception _exception;
+        }
+
+        [Subject("Ambient DB Context Disposal Exception Safety")]
+        class When_dispose_throws_during_connection_close
+        {
+            Establish context = () =>
+            {
+#if NET452
+                AmbientDbContextStorageProvider.SetStorage(new LogicalCallContextStorage());
+#else
+                AmbientDbContextStorageProvider.SetStorage(new AsyncLocalContextStorage());
+#endif
+
+                _dbConnectionMock = new Mock<IDbConnection>();
+                _dbConnectionMock.Setup(mock => mock.State).Returns(ConnectionState.Open);
+                _dbConnectionMock.Setup(mock => mock.Close()).Throws(new InvalidOperationException("Close failed"));
+
+                _ambientDbContext = new AmbientDbContext(_dbConnectionMock.Object, false, true, IsolationLevel.ReadCommitted);
+            };
+
+            Because of = () =>
+            {
+                _exception = Catch.Exception(() => _ambientDbContext.Dispose());
+            };
+
+            It should_throw_the_close_exception = () =>
+            {
+                _exception.ShouldNotBeNull();
+                _exception.ShouldBeOfExactType<InvalidOperationException>();
+                _exception.Message.ShouldEqual("Close failed");
+            };
+
+            It should_still_dispose_the_connection = () =>
+            {
+                _dbConnectionMock.Verify(mock => mock.Dispose(), Times.Once);
+            };
+
+            Cleanup test = () =>
+            {
+                AmbientDbContextStorageProvider.SetStorage(null);
+            };
+
+            private static Mock<IDbConnection> _dbConnectionMock;
+            private static AmbientDbContext _ambientDbContext;
+            private static Exception _exception;
+        }
     }
 }
