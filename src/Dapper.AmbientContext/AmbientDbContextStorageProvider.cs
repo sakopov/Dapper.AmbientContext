@@ -63,11 +63,8 @@ namespace Dapper.AmbientContext
         /// Sets contextual storage strategy for ambient database context.
         /// </summary>
         /// <param name="storage">
-        /// The storage to use.
+        /// The storage to use. Pass <c>null</c> to clear the current storage.
         /// </param>
-        /// <exception cref="ArgumentNullException">
-        /// when <paramref name="storage"/> is <c>null</c>.
-        /// </exception>
         public static void SetStorage(IContextualStorage storage)
         {
             _storage = storage;
