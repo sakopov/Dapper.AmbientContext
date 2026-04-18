@@ -48,7 +48,7 @@ jobs:
 
   release:
     needs: test
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
 
     steps:
@@ -73,14 +73,9 @@ jobs:
 
     - name: Get Version Before Release
       id: before_version
-      shell: pwsh
       run: |
-        $beforeTag = git describe --tags --abbrev=0 2>$null
-        if ($beforeTag) {
-          Write-Output "before_tag=$beforeTag" >> $env:GITHUB_OUTPUT
-        } else {
-          Write-Output "before_tag=" >> $env:GITHUB_OUTPUT
-        }
+        BEFORE_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        echo "before_tag=$BEFORE_TAG" >> $GITHUB_OUTPUT
 
     - name: Semantic Release
       env:
@@ -89,19 +84,18 @@ jobs:
 
     - name: Get Release Version
       id: get_version
-      shell: pwsh
       run: |
-        $afterTag = git describe --tags --abbrev=0 2>$null
-        $beforeTag = "${{ steps.before_version.outputs.before_tag }}"
+        AFTER_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        BEFORE_TAG="${{ steps.before_version.outputs.before_tag }}"
 
-        if ($afterTag -and ($afterTag -ne $beforeTag)) {
-          $version = $afterTag.TrimStart('v')
-          Write-Output "version=$version" >> $env:GITHUB_OUTPUT
-          Write-Output "Released version: $version"
-        } else {
-          Write-Output "No new release created"
-          Write-Output "version=" >> $env:GITHUB_OUTPUT
-        }
+        if [ -n "$AFTER_TAG" ] && [ "$AFTER_TAG" != "$BEFORE_TAG" ]; then
+          VERSION=${AFTER_TAG#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Released version: $VERSION"
+        else
+          echo "No new release created"
+          echo "version=" >> $GITHUB_OUTPUT
+        fi
 
     - name: Restore dependencies
       if: steps.get_version.outputs.version != ''
